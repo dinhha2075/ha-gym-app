@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0B0F17">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hà Gym 55p">
+  <meta name="description" content="Ứng dụng tập Gym Full-Body 2 Tầng 55 Phút & Đồng bộ Google Sheet của anh Hà">
+  <title>HÀ GYM PRO — Full-Body 55 Phút</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="toast" class="toast">Đã lưu!</div>
+
+  <div class="app-shell">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand-wrap">
+        <div class="brand-logo">55P</div>
+        <div>
+          <div class="brand-title">HÀ GYM FULL-BODY</div>
+          <div class="brand-sub">
+            <span class="sync-dot"></span>
+            <span id="syncStatusText">Đồng bộ Google Sheet</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon" onclick="startRestTimer(90, 'Nghỉ tiêu chuẩn (90s)')">⏱️ 90s</button>
+        <button class="btn-icon" onclick="syncFromGoogleSheet(false)">🔄</button>
+      </div>
+    </header>
+
+    <!-- Scrollable Main Content -->
+    <main id="appContent" class="app-content"></main>
+
+    <!-- Floating Rest Countdown Timer -->
+    <div id="restTimerBar" class="rest-timer-bar">
+      <div>
+        <div id="timerLabel" class="timer-label">Nghỉ giữa hiệp</div>
+        <div id="timerTime" class="timer-time">01:30</div>
+      </div>
+      <div class="timer-controls">
+        <button class="btn-icon" onclick="adjustTimer(-15)">-15s</button>
+        <button class="btn-icon" onclick="adjustTimer(15)">+15s</button>
+        <button class="btn-icon" style="background:var(--rose-bg);color:var(--rose);border-color:transparent;" onclick="stopTimer()">✕ Tắt</button>
+      </div>
+    </div>
+
+    <!-- Bottom Tab Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="today" onclick="switchTab('today')">
+        <span class="nav-ico">🏋️</span>
+        <span>Hôm nay</span>
+      </button>
+      <button class="nav-item" data-tab="progress" onclick="switchTab('progress')">
+        <span class="nav-ico">📈</span>
+        <span>Tiến độ</span>
+      </button>
+      <button class="nav-item" data-tab="cardio" onclick="switchTab('cardio')">
+        <span class="nav-ico">🏃</span>
+        <span>Cardio & Cân</span>
+      </button>
+      <button class="nav-item" data-tab="library" onclick="switchTab('library')">
+        <span class="nav-ico">📚</span>
+        <span>Kỹ thuật</span>
+      </button>
+      <button class="nav-item" data-tab="settings" onclick="switchTab('settings')">
+        <span class="nav-ico">📲</span>
+        <span>Cài App</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
