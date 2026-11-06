@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ha-gym-pro-v2';
+const CACHE_NAME = 'ha-gym-apple-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -32,7 +32,6 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  // Always go network-first for Google Sheets / Google Apps Script live sync
   if (url.hostname.includes('google.com') || url.hostname.includes('googleapis.com') || url.hostname.includes('googleusercontent.com')) {
     return;
   }

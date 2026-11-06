@@ -1,13 +1,13 @@
 {
-  "name": "HÀ GYM PRO — Full-Body 55 Phút",
-  "short_name": "Hà Gym 55p",
-  "description": "Ứng dụng quản lý lịch tập Gym 2 Tầng, bấm giờ nghỉ, tính tạ Progressive Overload & đồng bộ Google Sheet của anh Hà.",
+  "name": "Hà Gym — 55 Phút",
+  "short_name": "Hà Gym",
+  "description": "Lịch tập Gym 2 Tầng, bấm giờ nghỉ & đồng bộ Google Sheet của anh Hà.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0B0F17",
-  "theme_color": "#0B0F17",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "lang": "vi-VN",
   "icons": [
     {

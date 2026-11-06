@@ -3,76 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0B0F17">
+  <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Hà Gym 55p">
-  <meta name="description" content="Ứng dụng tập Gym Full-Body 2 Tầng 55 Phút & Đồng bộ Google Sheet của anh Hà">
-  <title>HÀ GYM PRO — Full-Body 55 Phút</title>
+  <meta name="apple-mobile-web-app-title" content="Hà Gym">
+  <meta name="description" content="Lịch tập Gym 2 Tầng, bấm giờ nghỉ & đồng bộ Google Sheet của anh Hà">
+  <title>Hà Gym — 55 Phút</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="toast" class="toast">Đã lưu!</div>
+  <div id="toast" class="toast">Đã lưu</div>
 
   <div class="app-shell">
-    <!-- Top Header -->
+    <!-- Translucent iOS Header -->
     <header class="app-header">
-      <div class="brand-wrap">
-        <div class="brand-logo">55P</div>
-        <div>
-          <div class="brand-title">HÀ GYM FULL-BODY</div>
-          <div class="brand-sub">
-            <span class="sync-dot"></span>
-            <span id="syncStatusText">Đồng bộ Google Sheet</span>
-          </div>
+      <div class="header-left">
+        <div class="header-eyebrow">
+          <span class="live-dot"></span>
+          <span id="syncStatusText">Đã đồng bộ Sheet</span>
         </div>
+        <h1 id="headerTitle" class="header-title">Hôm nay</h1>
       </div>
       <div class="header-actions">
-        <button class="btn-icon" onclick="startRestTimer(90, 'Nghỉ tiêu chuẩn (90s)')">⏱️ 90s</button>
-        <button class="btn-icon" onclick="syncFromGoogleSheet(false)">🔄</button>
+        <button class="icon-pill-btn" onclick="startRestTimer(90, 'Nghỉ tiêu chuẩn')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5"/><path d="M10 2h4"/></svg>
+          <span class="tabular">90s</span>
+        </button>
+        <button class="icon-circle-btn" onclick="syncFromGoogleSheet(false)" aria-label="Đồng bộ Google Sheet">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+        </button>
       </div>
     </header>
 
-    <!-- Scrollable Main Content -->
+    <!-- Scrollable Main Area -->
     <main id="appContent" class="app-content"></main>
 
-    <!-- Floating Rest Countdown Timer -->
-    <div id="restTimerBar" class="rest-timer-bar">
-      <div>
-        <div id="timerLabel" class="timer-label">Nghỉ giữa hiệp</div>
-        <div id="timerTime" class="timer-time">01:30</div>
+    <!-- Dynamic Island Rest Timer -->
+    <div id="restTimerBar" class="dynamic-timer">
+      <div class="dt-left">
+        <div id="timerTime" class="dt-time tabular">01:30</div>
+        <div id="timerLabel" class="dt-label">Nghỉ giữa hiệp</div>
       </div>
-      <div class="timer-controls">
-        <button class="btn-icon" onclick="adjustTimer(-15)">-15s</button>
-        <button class="btn-icon" onclick="adjustTimer(15)">+15s</button>
-        <button class="btn-icon" style="background:var(--rose-bg);color:var(--rose);border-color:transparent;" onclick="stopTimer()">✕ Tắt</button>
+      <div class="dt-actions">
+        <button class="dt-chip tabular" onclick="adjustTimer(-15)">-15s</button>
+        <button class="dt-chip tabular" onclick="adjustTimer(15)">+15s</button>
+        <button class="dt-close" onclick="stopTimer()" aria-label="Tắt hẹn giờ">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
       </div>
     </div>
 
-    <!-- Bottom Tab Navigation -->
+    <!-- Interactive Draggable Detail Sheet -->
+    <div id="sheetScrim" class="sheet-scrim" onclick="closeDetailSheet()"></div>
+    <div id="sheetPanel" class="sheet-panel">
+      <div class="sheet-grabber"></div>
+      <div id="sheetBody"></div>
+    </div>
+
+    <!-- Translucent iOS Tab Bar -->
     <nav class="bottom-nav">
       <button class="nav-item active" data-tab="today" onclick="switchTab('today')">
-        <span class="nav-ico">🏋️</span>
-        <span>Hôm nay</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11"/><path d="M17.5 6.5v11"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M6.5 12h11"/></svg>
+        <span>Tập luyện</span>
       </button>
       <button class="nav-item" data-tab="progress" onclick="switchTab('progress')">
-        <span class="nav-ico">📈</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
         <span>Tiến độ</span>
       </button>
       <button class="nav-item" data-tab="cardio" onclick="switchTab('cardio')">
-        <span class="nav-ico">🏃</span>
-        <span>Cardio & Cân</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span>Cơ thể & Chạy</span>
       </button>
       <button class="nav-item" data-tab="library" onclick="switchTab('library')">
-        <span class="nav-ico">📚</span>
-        <span>Kỹ thuật</span>
-      </button>
-      <button class="nav-item" data-tab="settings" onclick="switchTab('settings')">
-        <span class="nav-ico">📲</span>
-        <span>Cài App</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <span>Thư viện</span>
       </button>
     </nav>
   </div>
