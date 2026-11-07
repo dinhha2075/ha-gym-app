@@ -979,7 +979,12 @@ function parseCSV(text) {
 }
 
 async function syncFromGoogleSheet(silent = false) {
-  if (!silent) showToast('Đang đồng bộ từ Google Sheet...');
+  if (!silent) {
+    showToast('Đang đồng bộ & kiểm tra bản mới...');
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.update())).catch(() => {});
+    }
+  }
   try {
     const logUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Workout Log')}&t=${Date.now()}`;
     const resLog = await fetch(logUrl);
@@ -1911,7 +1916,10 @@ function renderLibraryTab() {
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
       <a href="${SHEET_URL}" target="_blank" rel="noopener" class="btn-secondary-apple">Mở Sheet gốc</a>
-      <button class="btn-secondary-apple" style="color:var(--red);" onclick="resetLocalData()">Tải lại từ Sheet</button>
+      <button class="btn-secondary-apple" style="color:var(--green);" onclick="forceUpdateAppUI()">Làm mới Giao diện</button>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn-secondary-apple" style="width:100%;color:var(--red);" onclick="resetLocalData()">Khôi phục dữ liệu gốc từ Sheet</button>
     </div>
   `;
 }
@@ -1992,6 +2000,21 @@ function render() {
   });
 }
 
+async function forceUpdateAppUI() {
+  showToast('Đang làm mới giao diện...');
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch (e) {}
+  window.location.replace(window.location.pathname + '?v=' + Date.now());
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   loadState();
   render();
@@ -1999,6 +2022,16 @@ window.addEventListener('DOMContentLoaded', () => {
   syncFromGoogleSheet(true);
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+    navigator.serviceWorker.register('./sw.js?v=8', { updateViaCache: 'none' })
+      .then((reg) => {
+        reg.update();
+      })
+      .catch(() => {});
   }
 });

@@ -1,9 +1,9 @@
-const CACHE_NAME = 'ha-gym-apple-v7';
+const CACHE_NAME = 'ha-gym-apple-v8';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css',
-  './app.js',
+  './styles.css?v=8',
+  './app.js?v=8',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
@@ -11,10 +11,16 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
   self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(
+        ASSETS.map((url) =>
+          fetch(url, { cache: 'no-store' }).then((res) => cache.put(url, res))
+        )
+      )
+    )
+  );
 });
 
 self.addEventListener('activate', (event) => {
@@ -25,9 +31,8 @@ self.addEventListener('activate', (event) => {
           if (key !== CACHE_NAME) return caches.delete(key);
         })
       )
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -37,7 +42,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
