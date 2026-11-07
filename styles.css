@@ -439,8 +439,7 @@ input::-webkit-inner-spin-button {
 }
 
 input[type="number"],
-input[type="text"],
-select {
+input[type="text"] {
   -webkit-appearance: none;
   -moz-appearance: textfield;
   appearance: textfield;
@@ -452,6 +451,30 @@ select {
   border: none;
   outline: none;
   padding: 0;
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font-size: 16px !important;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--label-primary);
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2330D158' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0px center;
+  background-size: 14px 14px;
+  border: none;
+  outline: none;
+  padding: 2px 20px 2px 0;
+  cursor: pointer;
+}
+
+select option {
+  background-color: #1C1C1E;
+  color: #FFFFFF;
 }
 
 .weight-val-wrap {
@@ -767,6 +790,7 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   padding: 12px 16px;
   border-bottom: 0.5px solid var(--separator);
 }
@@ -774,12 +798,24 @@ select {
 .ios-input-row label {
   font-size: 15px;
   color: var(--label-primary);
+  flex-shrink: 0;
 }
 
-.ios-input-row input,
+.ios-input-row input {
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  color: var(--green);
+  font-weight: 600;
+}
+
 .ios-input-row select {
   text-align: right;
-  width: 150px;
+  text-align-last: right;
+  flex: 1;
+  min-width: 195px;
+  width: auto;
   color: var(--green);
   font-weight: 600;
 }

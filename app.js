@@ -1673,8 +1673,8 @@ function renderCardioBodyTab() {
           </div>
           <div style="display:flex;align-items:baseline;gap:4px;" class="tabular">
             <span style="font-size:13px;color:var(--label-secondary);">Hiện tại <strong>${curPR > 0 ? `${curPR}kg` : '—'}</strong> → Đích</span>
-            <div class="set-reps-box" style="margin-right:0;min-width:64px;padding:3px 8px;">
-              <input type="text" inputmode="decimal" class="set-reps-field tabular" style="width:42px;color:var(--green);"
+            <div class="set-reps-box" style="margin-right:0;min-width:80px;padding:4px 10px;">
+              <input type="text" inputmode="decimal" class="set-reps-field tabular" style="width:48px;color:var(--green);"
                 value="${tWeight}" onfocus="this.select()" onchange="updateExTarget3M('${ex.id}', this.value)" aria-label="Target 3 tháng ${ex.title}">
               <span class="set-reps-lbl">kg</span>
             </div>
@@ -1720,7 +1720,7 @@ function renderCardioBodyTab() {
         <div style="text-align:right;">
           <span style="font-size:12px;color:var(--label-secondary);">Target 3 Tháng (Chạm để sửa)</span>
           <div style="display:flex;align-items:baseline;justify-content:flex-end;gap:4px;margin-top:2px;">
-            <input type="text" inputmode="decimal" class="weight-val-input tabular" style="width:56px;color:var(--green);font-size:24px !important;"
+            <input type="text" inputmode="decimal" class="weight-val-input tabular" style="width:72px;text-align:right;color:var(--green);font-size:24px !important;"
               value="${target3MW}" onfocus="this.select()" onchange="updateBodyTarget3M('month3Weight', this.value)">
             <span style="font-size:14px;color:var(--green);font-weight:600;">kg</span>
           </div>
