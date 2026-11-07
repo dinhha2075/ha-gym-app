@@ -453,7 +453,8 @@ const DEFAULT_BODY_TARGETS_3M = {
   finalWeight: 62.0,
   targetWaist: 78.0,
   targetForearm: 33.0,
-  targetRunKm: 5.0
+  targetRunKm: 5.0,
+  stepGoal: 8000
 };
 
 let state = {
@@ -462,6 +463,7 @@ let state = {
   userManuallySelectedMode: false,
   warmupDone: false,
   todaySession: {},
+  dailyActivity: {},
   logs: [...INITIAL_LOGS],
   body: [...INITIAL_BODY],
   cardioLogs: [...INITIAL_CARDIO_LOGS],
@@ -543,7 +545,8 @@ function loadState() {
         body: parsed.body && parsed.body.length >= INITIAL_BODY.length ? parsed.body : [...INITIAL_BODY],
         cardioLogs: parsed.cardioLogs && parsed.cardioLogs.length ? parsed.cardioLogs : [...INITIAL_CARDIO_LOGS],
         exTargets3M: { ...DEFAULT_EX_TARGETS_3M, ...(parsed.exTargets3M || {}) },
-        bodyTargets3M: { ...DEFAULT_BODY_TARGETS_3M, ...(parsed.bodyTargets3M || {}) }
+        bodyTargets3M: { ...DEFAULT_BODY_TARGETS_3M, ...(parsed.bodyTargets3M || {}) },
+        dailyActivity: parsed.dailyActivity || {}
       };
     }
   } catch (e) {}
@@ -551,6 +554,7 @@ function loadState() {
   const info = getLastSessionInfo();
   state.workoutMode = info.nextMode;
   initTodayDefaults();
+  getTodayActivity();
 }
 
 function saveState() {
@@ -648,6 +652,255 @@ function getSlotLabel(ex) {
   if (state.workoutMode === 'WORKOUT_A') return ex.slotA || 'Tùy chọn';
   if (state.workoutMode === 'WORKOUT_B') return ex.slotB || 'Tùy chọn';
   return ex.id;
+}
+
+// ============================================================================
+// 2B. DAILY STEPS, LIVE PEDOMETER & MET CALORIE ENGINE
+// ============================================================================
+let pedometerActive = false;
+let lastStepTime = 0;
+
+function getTodayDateKey() {
+  return new Date().toLocaleDateString('vi-VN');
+}
+
+function getTodayActivity() {
+  const key = getTodayDateKey();
+  if (!state.dailyActivity) state.dailyActivity = {};
+  if (!state.dailyActivity[key]) {
+    state.dailyActivity[key] = {
+      steps: 0,
+      bikeDone: false,
+      farmerDone: false,
+      inclineDone: false,
+      bagDone: false
+    };
+  }
+  return state.dailyActivity[key];
+}
+
+// Estimate & calculate burned kcal for a single exercise based on MET + mechanical volume
+function getExerciseCalorieInfo(ex, weight, setsArr, numSets, bodyW) {
+  const compoundIds = ['EX01', 'EX02', 'EX03', 'EX04', 'EX07', 'EX08', 'EX09'];
+  const isCompound = compoundIds.includes(ex.id);
+  const met = isCompound ? 5.6 : 4.3;
+  const minPerSet = isCompound ? 2.0 : 1.55;
+  const volFactor = isCompound ? 0.005 : 0.004;
+  const basePerSet = met * 3.5 * (bodyW / 200) * minPerSet;
+
+  const w = Number(weight) || 0;
+  let estKcal = 0;
+  let burnedKcal = 0;
+
+  for (let i = 0; i < numSets; i++) {
+    const st = (setsArr && setsArr[i]) ? setsArr[i] : { reps: ex.repMax, done: false };
+    const estReps = Number(st.reps) || ex.repMax;
+    const setKcal = basePerSet + (w * estReps * volFactor);
+    estKcal += setKcal;
+    if (st.done) {
+      burnedKcal += setKcal;
+    }
+  }
+
+  return {
+    estKcal: Math.round(estKcal),
+    burnedKcal: Math.round(burnedKcal)
+  };
+}
+
+function calculateEnergyStats() {
+  const latestBody = state.body[state.body.length - 1] || { weight: 74.0 };
+  const bodyW = Number(latestBody.weight) || 74.0;
+  const act = getTodayActivity();
+  const todayKey = getTodayDateKey();
+  const exList = getTodayExercises();
+
+  // 1. Add-on activities kcal (MET formula: MET * 3.5 * bodyW / 200 * minutes)
+  const bikeKcal = Math.round(5.5 * 3.5 * (bodyW / 200) * 3);       // ~21 kcal (3p bike)
+  const farmerKcal = Math.round(6.5 * 3.5 * (bodyW / 200) * 1.2);   // ~10 kcal (45s hold)
+  const inclineKcal = Math.round(6.8 * 3.5 * (bodyW / 200) * 10);   // ~88 kcal (10p incline 10% @ 5.0km/h)
+  const bagKcal = Math.round(7.8 * 3.5 * (bodyW / 200) * 2);        // ~20 kcal (2p heavy bag)
+
+  // 2. Strength sets estimated & burned kcal
+  let setsEstKcal = 0;
+  let setsBurnedKcal = 0;
+
+  exList.forEach(ex => {
+    const numSets = getTargetSetsCount(ex);
+    const stats = getExerciseStats(ex);
+    const s = state.todaySession[ex.id] || { weight: stats.recWeight, sets: [] };
+    const info = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW);
+    setsEstKcal += info.estKcal;
+    setsBurnedKcal += info.burnedKcal;
+  });
+
+  // Also check if user already saved a workout earlier today in state.logs
+  const savedTodayLogs = state.logs.filter(l => l.date === todayKey && l.isLocal);
+  let savedLogKcal = 0;
+  if (savedTodayLogs.length > 0 && setsBurnedKcal === 0) {
+    savedTodayLogs.forEach(l => {
+      const ex = EXERCISES.find(e => e.name === l.exercise);
+      const numSets = ex ? getTargetSetsCount(ex) : 3;
+      const compoundIds = ['EX01', 'EX02', 'EX03', 'EX04', 'EX07', 'EX08', 'EX09'];
+      const isCompound = ex ? compoundIds.includes(ex.id) : true;
+      const met = isCompound ? 5.6 : 4.3;
+      const minPerSet = isCompound ? 2.0 : 1.55;
+      const volFactor = isCompound ? 0.005 : 0.004;
+      savedLogKcal += Math.round((met * 3.5 * (bodyW / 200) * minPerSet * numSets) + ((Number(l.volume) || 0) * volFactor));
+    });
+  }
+
+  const effectiveSetsBurned = Math.max(setsBurnedKcal, savedLogKcal);
+  const addonsBurnedKcal =
+    (act.bikeDone ? bikeKcal : 0) +
+    (act.farmerDone ? farmerKcal : 0) +
+    (act.inclineDone ? inclineKcal : 0) +
+    (act.bagDone ? bagKcal : 0);
+
+  // Standard session includes: 3p Bike + Strength Sets + 45s Farmer Hold + 10p Incline Walk
+  const workoutEstKcal = setsEstKcal + bikeKcal + farmerKcal + inclineKcal;
+  const workoutBurnedKcal = effectiveSetsBurned + addonsBurnedKcal;
+  const workoutPct = workoutEstKcal > 0 ? Math.min(100, Math.round((workoutBurnedKcal / workoutEstKcal) * 100)) : 0;
+
+  // 3. Daily Steps & Step Calories (Stride for 1m63 height = 0.676m; ~0.55 kcal/kg per 1,000 steps)
+  const steps = Math.max(0, Number(act.steps) || 0);
+  const stepGoal = Math.max(1000, Number(state.bodyTargets3M?.stepGoal) || 8000);
+  const stepKm = ((steps * 0.676) / 1000).toFixed(2);
+  const kcalPer1kSteps = 0.55 * bodyW; // ~40.7 kcal / 1,000 steps at 74kg
+  const stepBurnedKcal = Math.round((steps / 1000) * kcalPer1kSteps);
+  const stepEstKcal = Math.round((stepGoal / 1000) * kcalPer1kSteps);
+  const stepPct = Math.min(100, Math.round((steps / stepGoal) * 100));
+
+  // 4. Morning Zone 2 Run logged today (if any)
+  const todayRuns = state.cardioLogs.filter(c => c.date === todayKey && c.isLocal);
+  const runKcalToday = todayRuns.reduce((sum, r) => sum + Math.round((Number(r.dist) || 0) * bodyW * 1.03), 0);
+
+  // 5. Total Daily Active Calories & Total Daily TDEE (Mifflin-St Jeor BMR: 1989 -> 37yo, 163cm, Male)
+  const dailyActiveBurned = workoutBurnedKcal + stepBurnedKcal + runKcalToday;
+  const dailyActiveEst = workoutEstKcal + stepEstKcal + runKcalToday;
+  const dailyActivePct = dailyActiveEst > 0 ? Math.min(100, Math.round((dailyActiveBurned / dailyActiveEst) * 100)) : 0;
+
+  const bmr = Math.round(10 * bodyW + 6.25 * 163 - 5 * 37 + 5); // ~1,579 kcal at 74kg
+  const baseRestDayKcal = Math.round(bmr * 1.15);               // BMR + TEF/desk resting (~1,816 kcal)
+  const dailyTotalBurnedTDEE = baseRestDayKcal + dailyActiveBurned;
+  const dailyTotalEstTDEE = baseRestDayKcal + dailyActiveEst;
+  const recIntakeForCut = Math.max(1500, dailyTotalEstTDEE - 550); // ~550 kcal deficit for -0.5kg/week
+
+  return {
+    bodyW,
+    act,
+    bikeKcal,
+    farmerKcal,
+    inclineKcal,
+    bagKcal,
+    setsEstKcal,
+    setsBurnedKcal: effectiveSetsBurned,
+    addonsBurnedKcal,
+    workoutEstKcal,
+    workoutBurnedKcal,
+    workoutPct,
+    steps,
+    stepGoal,
+    stepKm,
+    stepBurnedKcal,
+    stepEstKcal,
+    stepPct,
+    runKcalToday,
+    dailyActiveBurned,
+    dailyActiveEst,
+    dailyActivePct,
+    bmr,
+    baseRestDayKcal,
+    dailyTotalBurnedTDEE,
+    dailyTotalEstTDEE,
+    recIntakeForCut
+  };
+}
+
+function addSteps(delta) {
+  hapticTap(10);
+  const act = getTodayActivity();
+  act.steps = Math.max(0, (Number(act.steps) || 0) + delta);
+  saveState();
+  render();
+  showToast(`Đã cộng +${delta.toLocaleString('vi-VN')} bước (${act.steps.toLocaleString('vi-VN')} bước)`);
+}
+
+function setStepsInput(val) {
+  const num = parseInt(String(val).replace(/[^0-9]/g, ''), 10);
+  const act = getTodayActivity();
+  act.steps = isNaN(num) ? 0 : Math.max(0, num);
+  saveState();
+  render();
+  showToast(`Đã cập nhật ${act.steps.toLocaleString('vi-VN')} bước hôm nay`);
+}
+
+function triggerAddonActivity(key, seconds, label, kcal) {
+  const act = getTodayActivity();
+  if (!act[key]) {
+    act[key] = true;
+    saveState();
+    render();
+    startRestTimer(seconds, `${label} (+${kcal} kcal)`);
+  } else {
+    startRestTimer(seconds, label);
+  }
+}
+
+function toggleAddonCheck(event, key, label, kcal) {
+  event.stopPropagation();
+  hapticTap(12);
+  const act = getTodayActivity();
+  act[key] = !act[key];
+  saveState();
+  render();
+  showToast(act[key] ? `✓ Đã tính +${kcal} kcal (${label})` : `Đã bỏ tính ${label}`);
+}
+
+function handleMotionStep(event) {
+  if (!pedometerActive) return;
+  const acc = event.accelerationIncludingGravity;
+  if (!acc) return;
+  const mag = Math.sqrt((acc.x || 0) ** 2 + (acc.y || 0) ** 2 + (acc.z || 0) ** 2);
+  const now = performance.now();
+  // Walking peak threshold (> 12.4 m/s^2 vs 9.8g baseline) with 330ms debounce
+  if (mag > 12.4 && now - lastStepTime > 330) {
+    lastStepTime = now;
+    const act = getTodayActivity();
+    act.steps = (Number(act.steps) || 0) + 1;
+    saveState();
+    const stepNumEl = document.getElementById('liveStepCountNum');
+    const stepInputEl = document.getElementById('todayStepsInput');
+    if (stepNumEl) stepNumEl.textContent = act.steps.toLocaleString('vi-VN');
+    if (stepInputEl && document.activeElement !== stepInputEl) stepInputEl.value = act.steps;
+  }
+}
+
+async function toggleLivePedometer() {
+  hapticTap(12);
+  if (pedometerActive) {
+    pedometerActive = false;
+    window.removeEventListener('devicemotion', handleMotionStep);
+    render();
+    showToast('Đã tạm dừng cảm biến đếm bước');
+    return;
+  }
+
+  try {
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+      const perm = await DeviceMotionEvent.requestPermission();
+      if (perm !== 'granted') {
+        showToast('Cần cấp quyền Chuyển động trên iPhone để tự đếm bước');
+        return;
+      }
+    }
+    pedometerActive = true;
+    window.addEventListener('devicemotion', handleMotionStep, true);
+    render();
+    showToast('Đang đếm bước trực tiếp khi anh đi bộ...');
+  } catch (e) {
+    showToast('Thiết bị không hỗ trợ cảm biến, anh dùng nút +Bước nhé');
+  }
 }
 
 // ============================================================================
@@ -1284,7 +1537,9 @@ async function submitCardioLog() {
 function renderTodayTab() {
   const exList = getTodayExercises();
   const latestBody = state.body[state.body.length - 1] || { weight: 74.0 };
+  const bodyW = Number(latestBody.weight) || 74.0;
   const lastSession = getLastSessionInfo();
+  const energy = calculateEnergyStats();
   let doneSets = 0;
   let totalSets = 0;
   let todayVolume = 0;
@@ -1333,6 +1588,7 @@ function renderTodayTab() {
     const stats = getExerciseStats(ex);
     const numSets = getTargetSetsCount(ex);
     const s = state.todaySession[ex.id] || { weight: stats.recWeight, sets: [] };
+    const exCal = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW);
     const exDoneCount = s.sets.slice(0, numSets).filter(st => st.done).length;
     const isCompleted = exDoneCount >= numSets;
     const slotLabel = getSlotLabel(ex);
@@ -1360,7 +1616,7 @@ function renderTodayTab() {
       <div class="apple-card ${isCompleted ? 'completed' : ''}">
         <div class="card-top">
           <div onclick="openDetailSheet('${ex.id}')" style="cursor:pointer;flex:1;">
-            <div class="ex-slot-tag">${slotLabel} · TẦNG ${ex.floor} · NGHỈ ${ex.restSec}S</div>
+            <div class="ex-slot-tag tabular">${slotLabel} · TẦNG ${ex.floor} · NGHỈ ${ex.restSec}S · <span style="color:var(--orange);">🔥 ${exCal.burnedKcal}/${exCal.estKcal} kcal</span></div>
             <div class="ex-name">${ex.title}</div>
             <div class="ex-sub">${ex.vnSub}</div>
           </div>
@@ -1437,37 +1693,135 @@ function renderTodayTab() {
           <div class="m-value tabular">${todayVolume.toLocaleString('vi-VN')}<span class="m-unit"> kg</span></div>
         </div>
         <div class="metric-item">
-          <div class="m-label">Cân nặng</div>
-          <div class="m-value tabular">${latestBody.weight}<span class="m-unit"> kg</span></div>
+          <div class="m-label">Calo buổi tập</div>
+          <div class="m-value tabular" style="color:var(--orange);">${energy.workoutBurnedKcal}<span class="m-unit">/${energy.workoutEstKcal}</span></div>
         </div>
       </div>
     </div>
 
-    <!-- Quick Timers Strip (Warm-up & Finisher) -->
+    <!-- Apple Fitness Energy (Session vs Daily Calories) & Daily Steps Dashboard -->
+    <div class="energy-grid tabular">
+      <!-- Tile 1: Workout Calories (Burned vs Estimated) -->
+      <div class="energy-tile">
+        <div>
+          <div class="energy-eyebrow" style="color:var(--orange);">
+            <span>🔥 Calo Buổi Tập</span>
+            <span>${energy.workoutPct}%</span>
+          </div>
+          <div class="energy-main-num">
+            ${energy.workoutBurnedKcal} <span class="energy-sub-unit">/ ${energy.workoutEstKcal} kcal</span>
+          </div>
+        </div>
+        <div>
+          <div class="apple-progress-track" style="height:5px;margin:7px 0;">
+            <div class="apple-progress-fill" style="width:${energy.workoutPct}%;background:var(--orange);"></div>
+          </div>
+          <div class="energy-foot">
+            Tạ: <strong>${energy.setsBurnedKcal}</strong>/${energy.setsEstKcal} · Cardio: <strong>${energy.addonsBurnedKcal}</strong> kcal
+          </div>
+        </div>
+      </div>
+
+      <!-- Tile 2: Daily Calories (Active + Total TDEE) -->
+      <div class="energy-tile">
+        <div>
+          <div class="energy-eyebrow" style="color:var(--red);">
+            <span>⚡ Calo Trong Ngày</span>
+            <span>${energy.dailyActivePct}%</span>
+          </div>
+          <div class="energy-main-num">
+            ${energy.dailyActiveBurned} <span class="energy-sub-unit">/ ${energy.dailyActiveEst} kcal</span>
+          </div>
+        </div>
+        <div>
+          <div class="apple-progress-track" style="height:5px;margin:7px 0;">
+            <div class="apple-progress-fill" style="width:${energy.dailyActivePct}%;background:var(--red);"></div>
+          </div>
+          <div class="energy-foot">
+            Tổng TDEE: <strong>${energy.dailyTotalBurnedTDEE.toLocaleString('vi-VN')}</strong>/${energy.dailyTotalEstTDEE.toLocaleString('vi-VN')} kcal
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Steps Tracker Card -->
+    <div class="steps-card tabular">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:0.03em;text-transform:uppercase;">
+            👟 Bước Chân Trong Ngày ${pedometerActive ? '· <span style="color:var(--green);">● ĐANG ĐẾM</span>' : ''}
+          </div>
+          <div style="font-size:23px;font-weight:700;letter-spacing:-0.025em;margin-top:3px;">
+            <span id="liveStepCountNum">${energy.steps.toLocaleString('vi-VN')}</span>
+            <span style="font-size:13px;font-weight:500;color:var(--label-secondary);">/ ${energy.stepGoal.toLocaleString('vi-VN')} bước (${energy.stepPct}%)</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:700;color:var(--blue);">${energy.stepKm} km</div>
+          <div style="font-size:11px;color:var(--label-secondary);margin-top:2px;">Đốt ${energy.stepBurnedKcal}/${energy.stepEstKcal} kcal</div>
+        </div>
+      </div>
+
+      <div class="apple-progress-track" style="height:6px;margin:8px 0;">
+        <div class="apple-progress-fill" style="width:${energy.stepPct}%;background:var(--blue);"></div>
+      </div>
+
+      <div class="steps-chip-row">
+        <button class="step-chip-btn ${pedometerActive ? 'sensor-active' : ''}" onclick="toggleLivePedometer()">
+          <span>${pedometerActive ? '⏸ Dừng đếm' : '🚶 Tự đếm'}</span>
+        </button>
+        <button class="step-chip-btn" onclick="addSteps(500)">+500</button>
+        <button class="step-chip-btn" onclick="addSteps(1000)">+1.000</button>
+        <button class="step-chip-btn" onclick="addSteps(2000)">+2.000</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding-top:9px;border-top:0.5px solid var(--separator);font-size:13px;">
+        <span style="color:var(--label-secondary);">Nhập tổng bước từ Đồng hồ / Điện thoại:</span>
+        <div class="set-reps-box" style="margin-right:0;min-width:96px;padding:3px 10px;">
+          <input type="text" inputmode="numeric" id="todayStepsInput" class="set-reps-field tabular" style="width:58px;color:var(--blue);"
+            value="${energy.steps}" onfocus="this.select()" onchange="setStepsInput(this.value)" aria-label="Tổng bước chân hôm nay">
+          <span class="set-reps-lbl">bước</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Timers Strip (Warm-up & Finisher with Calorie Check) -->
     <div class="section-header">
-      <span class="section-title">Bấm giờ nhanh</span>
-      <span class="section-meta">Khởi động · Cẳng tay · Cardio</span>
+      <span class="section-title">Bấm giờ & Tích Calo bổ trợ</span>
+      <span class="section-meta">Chạm hẹn giờ · Tích ✓ cộng Calo</span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
-      <button class="btn-secondary-apple tabular" style="padding:10px 4px;font-size:12px;flex-direction:column;gap:2px;"
-        onclick="startRestTimer(180, 'Đạp xe khởi động Tầng 2')">
+      <button class="btn-secondary-apple addon-timer-btn ${energy.act.bikeDone ? 'done' : ''} tabular" style="padding:9px 4px;font-size:12px;flex-direction:column;gap:2px;"
+        onclick="triggerAddonActivity('bikeDone', 180, 'Đạp xe khởi động Tầng 2', ${energy.bikeKcal})">
         <span style="color:var(--green);font-weight:700;">03:00</span>
-        <span style="color:var(--label-secondary);font-size:11px;">Đạp xe</span>
+        <span style="color:var(--label-primary);font-size:11px;">Đạp xe</span>
+        <span onclick="toggleAddonCheck(event, 'bikeDone', 'Đạp xe 3p', ${energy.bikeKcal})" style="font-size:10px;color:${energy.act.bikeDone ? 'var(--green)' : 'var(--orange)'};font-weight:700;">
+          ${energy.act.bikeDone ? `✓ +${energy.bikeKcal} kcal` : `+${energy.bikeKcal} kcal`}
+        </span>
       </button>
-      <button class="btn-secondary-apple tabular" style="padding:10px 4px;font-size:12px;flex-direction:column;gap:2px;"
-        onclick="startRestTimer(45, 'Xách tạ nặng Farmer Hold')">
+      <button class="btn-secondary-apple addon-timer-btn ${energy.act.farmerDone ? 'done' : ''} tabular" style="padding:9px 4px;font-size:12px;flex-direction:column;gap:2px;"
+        onclick="triggerAddonActivity('farmerDone', 45, 'Xách tạ nặng Farmer Hold', ${energy.farmerKcal})">
         <span style="color:var(--green);font-weight:700;">00:45</span>
-        <span style="color:var(--label-secondary);font-size:11px;">Xách tạ</span>
+        <span style="color:var(--label-primary);font-size:11px;">Xách tạ</span>
+        <span onclick="toggleAddonCheck(event, 'farmerDone', 'Xách tạ 45s', ${energy.farmerKcal})" style="font-size:10px;color:${energy.act.farmerDone ? 'var(--green)' : 'var(--orange)'};font-weight:700;">
+          ${energy.act.farmerDone ? `✓ +${energy.farmerKcal} kcal` : `+${energy.farmerKcal} kcal`}
+        </span>
       </button>
-      <button class="btn-secondary-apple tabular" style="padding:10px 4px;font-size:12px;flex-direction:column;gap:2px;"
-        onclick="startRestTimer(600, 'Đi bộ dốc 10% · Tốc 5.0')">
+      <button class="btn-secondary-apple addon-timer-btn ${energy.act.inclineDone ? 'done' : ''} tabular" style="padding:9px 4px;font-size:12px;flex-direction:column;gap:2px;"
+        onclick="triggerAddonActivity('inclineDone', 600, 'Đi bộ dốc 10% · Tốc 5.0', ${energy.inclineKcal})">
         <span style="color:var(--green);font-weight:700;">10:00</span>
-        <span style="color:var(--label-secondary);font-size:11px;">Đi bộ dốc</span>
+        <span style="color:var(--label-primary);font-size:11px;">Đi bộ dốc</span>
+        <span onclick="toggleAddonCheck(event, 'inclineDone', 'Đi bộ dốc 10p', ${energy.inclineKcal})" style="font-size:10px;color:${energy.act.inclineDone ? 'var(--green)' : 'var(--orange)'};font-weight:700;">
+          ${energy.act.inclineDone ? `✓ +${energy.inclineKcal} kcal` : `+${energy.inclineKcal} kcal`}
+        </span>
       </button>
-      <button class="btn-secondary-apple tabular" style="padding:10px 4px;font-size:12px;flex-direction:column;gap:2px;"
-        onclick="startRestTimer(120, 'Combo Đấm & Đá bao cát')">
+      <button class="btn-secondary-apple addon-timer-btn ${energy.act.bagDone ? 'done' : ''} tabular" style="padding:9px 4px;font-size:12px;flex-direction:column;gap:2px;"
+        onclick="triggerAddonActivity('bagDone', 120, 'Combo Đấm & Đá bao cát', ${energy.bagKcal})">
         <span style="color:var(--green);font-weight:700;">02:00</span>
-        <span style="color:var(--label-secondary);font-size:11px;">Bao cát</span>
+        <span style="color:var(--label-primary);font-size:11px;">Bao cát</span>
+        <span onclick="toggleAddonCheck(event, 'bagDone', 'Bao cát 2p', ${energy.bagKcal})" style="font-size:10px;color:${energy.act.bagDone ? 'var(--green)' : 'var(--orange)'};font-weight:700;">
+          ${energy.act.bagDone ? `✓ +${energy.bagKcal} kcal` : `+${energy.bagKcal} kcal`}
+        </span>
       </button>
     </div>
 
@@ -1637,6 +1991,7 @@ function updateBodyTarget3M(key, val) {
 function renderCardioBodyTab() {
   const bt = { ...DEFAULT_BODY_TARGETS_3M, ...(state.bodyTargets3M || {}) };
   const et = { ...DEFAULT_EX_TARGETS_3M, ...(state.exTargets3M || {}) };
+  const energy = calculateEnergyStats();
 
   const latestBody = state.body[state.body.length - 1] || { weight: 74.0, waist: '', forearm: '' };
   const currentW = Number(latestBody.weight) || 74.0;
@@ -1794,6 +2149,39 @@ function renderCardioBodyTab() {
           ${maxRunKm} <span style="font-size:13px;color:var(--label-secondary);">→ ${bt.targetRunKm} km</span>
         </div>
         <div style="font-size:11px;color:var(--green);margin-top:4px;">Đạt ${runPct}% mốc 5km</div>
+      </div>
+    </div>
+
+    <!-- 2B. Daily Step Target & Calorie Deficit Plan -->
+    <div class="apple-card tabular">
+      <div class="ex-slot-tag" style="color:var(--orange);">MỤC TIÊU BƯỚC CHÂN & NGÂN SÁCH CALO HÀNG NGÀY</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-bottom:10px;border-bottom:0.5px solid var(--separator);">
+        <div>
+          <div style="font-size:14px;font-weight:600;">Mục tiêu bước chân / ngày</div>
+          <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;">Hôm nay: ${energy.steps.toLocaleString('vi-VN')} bước (${energy.stepKm} km · ${energy.stepBurnedKcal} kcal)</div>
+        </div>
+        <div class="set-reps-box" style="margin-right:0;min-width:96px;padding:4px 10px;">
+          <input type="text" inputmode="numeric" class="set-reps-field tabular" style="width:58px;color:var(--blue);"
+            value="${energy.stepGoal}" onfocus="this.select()" onchange="updateBodyTarget3M('stepGoal', this.value)" aria-label="Mục tiêu bước chân mỗi ngày">
+          <span class="set-reps-lbl">bước</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;text-align:center;">
+        <div>
+          <div style="font-size:10px;color:var(--label-secondary);">TDEE DỰ TÍNH</div>
+          <div style="font-size:15px;font-weight:700;color:var(--orange);margin-top:2px;">${energy.dailyTotalEstTDEE.toLocaleString('vi-VN')}</div>
+          <div style="font-size:10px;color:var(--label-secondary);">kcal/ngày</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--label-secondary);">ĐÃ ĐỐT HÔM NAY</div>
+          <div style="font-size:15px;font-weight:700;color:var(--red);margin-top:2px;">${energy.dailyTotalBurnedTDEE.toLocaleString('vi-VN')}</div>
+          <div style="font-size:10px;color:var(--label-secondary);">Active ${energy.dailyActiveBurned} kcal</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--green);font-weight:700;">ĂN ĐỂ VỀ 65KG</div>
+          <div style="font-size:15px;font-weight:700;color:var(--green);margin-top:2px;">~${energy.recIntakeForCut.toLocaleString('vi-VN')}</div>
+          <div style="font-size:10px;color:var(--label-secondary);">kcal (−550 kcal)</div>
+        </div>
       </div>
     </div>
 
@@ -2028,7 +2416,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=8', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=9', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })

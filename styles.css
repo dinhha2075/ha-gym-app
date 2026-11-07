@@ -837,6 +837,99 @@ select option {
   transition: width 350ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Energy & Daily Steps Dashboard (Apple Fitness Move & Steps) */
+.energy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.energy-tile {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-card);
+  padding: 13px 14px;
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.energy-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.energy-main-num {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin-top: 5px;
+}
+
+.energy-sub-unit {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--label-secondary);
+}
+
+.energy-foot {
+  font-size: 11px;
+  color: var(--label-secondary);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.steps-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border: 0.5px solid rgba(10, 132, 255, 0.22);
+}
+
+.steps-chip-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr 1fr;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.step-chip-btn {
+  background: var(--bg-tertiary);
+  color: var(--label-primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 6px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.step-chip-btn.sensor-active {
+  background: rgba(48, 209, 88, 0.18);
+  color: var(--green);
+  border: 0.5px solid rgba(48, 209, 88, 0.45);
+}
+
+.addon-timer-btn {
+  position: relative;
+  border: 0.5px solid transparent;
+}
+
+.addon-timer-btn.done {
+  background: rgba(48, 209, 88, 0.14);
+  border-color: rgba(48, 209, 88, 0.45);
+}
+
 /* Minimal Toast Pill */
 .toast {
   position: fixed;
