@@ -428,6 +428,34 @@ const INITIAL_CARDIO_LOGS = [
   { date: '26/09/2026', day: 'Thứ 7', week: 'Tuần 1', duration: 21, dist: 2.4, hr: '130 bpm', status: 'Hoàn thành' }
 ];
 
+// Default 3-Month (12-Week) Strength Targets (kg) for each exercise
+const DEFAULT_EX_TARGETS_3M = {
+  EX01: 200,   // Leg Press: 160kg -> 200kg
+  EX02: 75,    // Seated Chest Press: 55kg -> 75kg
+  EX03: 65,    // Lat Pulldown: 40kg -> 65kg
+  EX04: 75,    // Machine Shoulder Press: 60kg -> 75kg
+  EX05: 35,    // Triceps Pushdown: 20kg -> 35kg
+  EX06: 42.5,  // Wrist Curl: 30kg -> 42.5kg
+  EX07: 55,    // Seated Leg Curl: 35kg -> 55kg
+  EX08: 80,    // Incline Chest Press: 60kg -> 80kg
+  EX09: 80,    // Seated Row Machine: 60kg -> 80kg
+  EX10: 12.5,  // Lateral Raise: 5kg -> 12.5kg
+  EX11: 25,    // Hammer & Reverse Curl: 15kg -> 25kg
+  EX12: 70,    // Ab Crunch Machine: 50kg -> 70kg
+  EX13: 20     // Reverse Wrist Curl: 10kg -> 20kg
+};
+
+const DEFAULT_BODY_TARGETS_3M = {
+  startWeight: 78.0,
+  month1Weight: 71.0,
+  month2Weight: 68.0,
+  month3Weight: 65.0,
+  finalWeight: 62.0,
+  targetWaist: 78.0,
+  targetForearm: 33.0,
+  targetRunKm: 5.0
+};
+
 let state = {
   activeTab: 'today',
   workoutMode: 'WORKOUT_A', // 'WORKOUT_A' | 'WORKOUT_B' | '2FLOOR'
@@ -437,6 +465,8 @@ let state = {
   logs: [...INITIAL_LOGS],
   body: [...INITIAL_BODY],
   cardioLogs: [...INITIAL_CARDIO_LOGS],
+  exTargets3M: { ...DEFAULT_EX_TARGETS_3M },
+  bodyTargets3M: { ...DEFAULT_BODY_TARGETS_3M },
   webhookUrl: '',
   lastSync: 'Đã đồng bộ Sheet',
   libFilter: 'ALL'
@@ -511,7 +541,9 @@ function loadState() {
         ...parsed,
         logs: parsed.logs && parsed.logs.length >= INITIAL_LOGS.length ? parsed.logs : [...INITIAL_LOGS],
         body: parsed.body && parsed.body.length >= INITIAL_BODY.length ? parsed.body : [...INITIAL_BODY],
-        cardioLogs: parsed.cardioLogs && parsed.cardioLogs.length ? parsed.cardioLogs : [...INITIAL_CARDIO_LOGS]
+        cardioLogs: parsed.cardioLogs && parsed.cardioLogs.length ? parsed.cardioLogs : [...INITIAL_CARDIO_LOGS],
+        exTargets3M: { ...DEFAULT_EX_TARGETS_3M, ...(parsed.exTargets3M || {}) },
+        bodyTargets3M: { ...DEFAULT_BODY_TARGETS_3M, ...(parsed.bodyTargets3M || {}) }
       };
     }
   } catch (e) {}
@@ -1577,8 +1609,93 @@ function renderProgressTab() {
   `;
 }
 
+function updateExTarget3M(exId, val) {
+  const num = parseFloat(val);
+  if (!num || isNaN(num) || num <= 0) return;
+  if (!state.exTargets3M) state.exTargets3M = { ...DEFAULT_EX_TARGETS_3M };
+  state.exTargets3M[exId] = num;
+  saveState();
+  render();
+  showToast(`Đã đặt Target 3 tháng: ${num} kg`);
+}
+
+function updateBodyTarget3M(key, val) {
+  const num = parseFloat(val);
+  if (!num || isNaN(num) || num <= 0) return;
+  if (!state.bodyTargets3M) state.bodyTargets3M = { ...DEFAULT_BODY_TARGETS_3M };
+  state.bodyTargets3M[key] = num;
+  saveState();
+  render();
+  showToast('Đã cập nhật mục tiêu cơ thể');
+}
+
 function renderCardioBodyTab() {
-  const bodyRows = [...state.body].reverse().map(b => `
+  const bt = { ...DEFAULT_BODY_TARGETS_3M, ...(state.bodyTargets3M || {}) };
+  const et = { ...DEFAULT_EX_TARGETS_3M, ...(state.exTargets3M || {}) };
+
+  const latestBody = state.body[state.body.length - 1] || { weight: 74.0, waist: '', forearm: '' };
+  const currentW = Number(latestBody.weight) || 74.0;
+  const startW = bt.startWeight || 78.0;
+  const target3MW = bt.month3Weight || 65.0;
+  const finalW = bt.finalWeight || 62.0;
+
+  // Progress toward 3-Month Weight Target (78kg -> 65kg)
+  const lostSoFar = Math.max(0, startW - currentW);
+  const total3MLoss = Math.max(0.5, startW - target3MW);
+  const weight3MPct = Math.min(100, Math.max(5, Math.round((lostSoFar / total3MLoss) * 100)));
+  const remain3MW = Math.max(0, (currentW - target3MW)).toFixed(1);
+
+  // Latest logged waist & forearm & max run distance
+  const latestWithWaist = [...state.body].reverse().find(b => Number(b.waist) > 0);
+  const currentWaist = latestWithWaist ? Number(latestWithWaist.waist) : null;
+  const latestWithForearm = [...state.body].reverse().find(b => Number(b.forearm) > 0);
+  const currentForearm = latestWithForearm ? Number(latestWithForearm.forearm) : null;
+  const maxRunKm = state.cardioLogs.reduce((m, c) => Math.max(m, Number(c.dist) || 0), 0);
+  const runPct = Math.min(100, Math.round((maxRunKm / (bt.targetRunKm || 5.0)) * 100));
+
+  // Calculate overall 3-month strength target completion across 13 exercises
+  let sumStrengthPct = 0;
+  const exTargetRows = EXERCISES.map(ex => {
+    const st = getExerciseStats(ex);
+    const curPR = st.prWeight || st.lastWeight || 0;
+    const tWeight = Number(et[ex.id]) || DEFAULT_EX_TARGETS_3M[ex.id] || 50;
+    const pct = tWeight > 0 ? Math.min(100, Math.round((curPR / tWeight) * 100)) : 0;
+    sumStrengthPct += pct;
+    const diff = Math.max(0, Number((tWeight - curPR).toFixed(1)));
+    const barColor = pct >= 100 ? 'var(--green)' : pct >= 75 ? '#30D158' : 'var(--blue)';
+
+    return `
+      <div class="ios-row" style="flex-direction:column;align-items:stretch;gap:6px;padding:13px 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+          <div onclick="openDetailSheet('${ex.id}')" style="cursor:pointer;flex:1;">
+            <span style="font-size:11px;font-weight:700;color:var(--green);">${ex.slotA || ex.slotB || ex.id} · TẦNG ${ex.floor}</span>
+            <div style="font-size:15px;font-weight:600;margin-top:1px;">${ex.title}</div>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:4px;" class="tabular">
+            <span style="font-size:13px;color:var(--label-secondary);">Hiện tại <strong>${curPR > 0 ? `${curPR}kg` : '—'}</strong> → Đích</span>
+            <div class="set-reps-box" style="margin-right:0;min-width:64px;padding:3px 8px;">
+              <input type="text" inputmode="decimal" class="set-reps-field tabular" style="width:42px;color:var(--green);"
+                value="${tWeight}" onfocus="this.select()" onchange="updateExTarget3M('${ex.id}', this.value)" aria-label="Target 3 tháng ${ex.title}">
+              <span class="set-reps-lbl">kg</span>
+            </div>
+          </div>
+        </div>
+        <div class="apple-progress-track" style="margin:2px 0;">
+          <div class="apple-progress-fill" style="width:${pct}%;background:${barColor};"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--label-secondary);" class="tabular">
+          <span>Đạt ${pct}% mục tiêu 3 tháng</span>
+          <span style="color:${diff === 0 ? 'var(--green)' : 'var(--label-secondary)'};font-weight:600;">
+            ${diff === 0 ? '✓ Đã đạt Target!' : `Còn +${diff} kg (+${Math.ceil(diff / ex.inc)} lần lên tạ)`}
+          </span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const avgStrengthPct = Math.round(sumStrengthPct / EXERCISES.length);
+
+  const bodyRows = [...state.body].reverse().slice(0, 6).map(b => `
     <div class="ios-row">
       <div>
         <div style="font-size:15px;font-weight:600;" class="tabular">${b.date}</div>
@@ -1591,33 +1708,116 @@ function renderCardioBodyTab() {
     </div>
   `).join('');
 
-  const z2Rows = ZONE2_PLAN.map(p => `
-    <div class="ios-row">
-      <div style="flex:1;">
-        <div style="font-size:14px;font-weight:600;">${p.week} · <span style="color:var(--green);" class="tabular">${p.dist}</span></div>
-        <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;">${p.structure}</div>
-      </div>
-      <span class="tabular" style="font-size:13px;color:var(--label-secondary);font-weight:500;">${p.duration}</span>
-    </div>
-  `).join('');
-
   return `
-    <div class="section-header" style="margin-top:0;">
-      <span class="section-title">Ghi nhận chỉ số cơ thể</span>
-      <span class="section-meta">Body Measurements</span>
+    <!-- 1. 3-Month Body Weight & Recomposition Target Card -->
+    <div class="apple-card">
+      <div class="ex-slot-tag">LỘ TRÌNH TARGET 3 THÁNG (12 TUẦN · BODY RECOMPOSITION)</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:4px;">
+        <div>
+          <span style="font-size:12px;color:var(--label-secondary);">Hiện tại</span>
+          <div style="font-size:28px;font-weight:700;letter-spacing:-0.025em;" class="tabular">${currentW} <span style="font-size:15px;font-weight:500;color:var(--label-secondary);">kg</span></div>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-size:12px;color:var(--label-secondary);">Target 3 Tháng (Chạm để sửa)</span>
+          <div style="display:flex;align-items:baseline;justify-content:flex-end;gap:4px;margin-top:2px;">
+            <input type="text" inputmode="decimal" class="weight-val-input tabular" style="width:56px;color:var(--green);font-size:24px !important;"
+              value="${target3MW}" onfocus="this.select()" onchange="updateBodyTarget3M('month3Weight', this.value)">
+            <span style="font-size:14px;color:var(--green);font-weight:600;">kg</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="apple-progress-track" style="height:8px;margin:12px 0;">
+        <div class="apple-progress-fill" style="width:${weight3MPct}%;"></div>
+      </div>
+
+      <!-- 3 Monthly Milestones Strip -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--separator);text-align:center;" class="tabular">
+        <div>
+          <div style="font-size:10px;color:var(--label-secondary);">THÁNG 1</div>
+          <div style="font-size:14px;font-weight:700;margin-top:2px;color:${currentW <= bt.month1Weight ? 'var(--green)' : 'var(--label-primary)'};">${bt.month1Weight} kg</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--label-secondary);">THÁNG 2</div>
+          <div style="font-size:14px;font-weight:700;margin-top:2px;color:${currentW <= bt.month2Weight ? 'var(--green)' : 'var(--label-primary)'};">${bt.month2Weight} kg</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--green);font-weight:700;">THÁNG 3</div>
+          <div style="font-size:14px;font-weight:700;margin-top:2px;color:var(--green);">${target3MW} kg</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--label-secondary);">ĐÍCH CUỐI</div>
+          <div style="font-size:14px;font-weight:700;margin-top:2px;">${finalW} kg</div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--label-secondary);margin-top:10px;" class="tabular">
+        <span>Đã giảm: −${lostSoFar.toFixed(1)} kg (${weight3MPct}%)</span>
+        <span style="color:var(--green);font-weight:600;">Còn cách đích 3 tháng: −${remain3MW} kg</span>
+      </div>
+    </div>
+
+    <!-- 2. Secondary 3-Month Body & Cardio Targets (Waist, Forearm, 5km Run, Strength Avg) -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;" class="tabular">
+      <div class="apple-card" style="margin-bottom:0;padding:13px;">
+        <div style="font-size:11px;color:var(--label-secondary);font-weight:600;">VÒNG EO 3 THÁNG</div>
+        <div style="font-size:19px;font-weight:700;margin-top:4px;">
+          ${currentWaist ? `${currentWaist}` : '—'} <span style="font-size:13px;color:var(--label-secondary);">→ ${bt.targetWaist} cm</span>
+        </div>
+        <div style="font-size:11px;color:var(--green);margin-top:4px;">Giảm mỡ nội tạng</div>
+      </div>
+
+      <div class="apple-card" style="margin-bottom:0;padding:13px;">
+        <div style="font-size:11px;color:var(--label-secondary);font-weight:600;">CẲNG TAY VẠM VỠ</div>
+        <div style="font-size:19px;font-weight:700;margin-top:4px;">
+          ${currentForearm ? `${currentForearm}` : '—'} <span style="font-size:13px;color:var(--label-secondary);">→ ${bt.targetForearm} cm</span>
+        </div>
+        <div style="font-size:11px;color:var(--green);margin-top:4px;">Xách tạ 30kg × 60s</div>
+      </div>
+
+      <div class="apple-card" style="margin-bottom:0;padding:13px;">
+        <div style="font-size:11px;color:var(--label-secondary);font-weight:600;">SỨC MẠNH 13 BÀI</div>
+        <div style="font-size:19px;font-weight:700;margin-top:4px;color:var(--green);">
+          ${avgStrengthPct}% <span style="font-size:12px;color:var(--label-secondary);font-weight:500;">Target 3T</span>
+        </div>
+        <div style="font-size:11px;color:var(--label-secondary);margin-top:4px;">Trung bình 13 máy</div>
+      </div>
+
+      <div class="apple-card" style="margin-bottom:0;padding:13px;">
+        <div style="font-size:11px;color:var(--label-secondary);font-weight:600;">CHẠY BỘ ZONE 2</div>
+        <div style="font-size:19px;font-weight:700;margin-top:4px;">
+          ${maxRunKm} <span style="font-size:13px;color:var(--label-secondary);">→ ${bt.targetRunKm} km</span>
+        </div>
+        <div style="font-size:11px;color:var(--green);margin-top:4px;">Đạt ${runPct}% mốc 5km</div>
+      </div>
+    </div>
+
+    <!-- 3. 3-Month Exercise Strength Targets (All 13 Lifts) -->
+    <div class="section-header">
+      <span class="section-title">Target 3 tháng · 13 bài tập</span>
+      <span class="section-meta">Chạm số kg để chỉnh đích</span>
+    </div>
+    <div class="ios-list">
+      ${exTargetRows}
+    </div>
+
+    <!-- 4. Quick Body Measurement Update -->
+    <div class="section-header">
+      <span class="section-title">Cập nhật cân nặng & số đo hôm nay</span>
+      <span class="section-meta">Đồng bộ Sheet</span>
     </div>
     <div class="ios-list">
       <div class="ios-input-row">
-        <label for="bmWeight">Cân nặng (kg)</label>
-        <input type="number" step="0.1" inputmode="decimal" id="bmWeight" placeholder="73.5">
+        <label for="bmWeight">Cân nặng hôm nay (kg)</label>
+        <input type="text" inputmode="decimal" id="bmWeight" placeholder="${currentW}">
       </div>
       <div class="ios-input-row">
         <label for="bmWaist">Vòng eo (cm)</label>
-        <input type="number" step="0.5" inputmode="decimal" id="bmWaist" placeholder="81.0">
+        <input type="text" inputmode="decimal" id="bmWaist" placeholder="81.0">
       </div>
       <div class="ios-input-row">
-        <label for="bmForearm">Cẳng tay (cm)</label>
-        <input type="number" step="0.2" inputmode="decimal" id="bmForearm" placeholder="31.5">
+        <label for="bmForearm">Chu vi Cẳng tay (cm)</label>
+        <input type="text" inputmode="decimal" id="bmForearm" placeholder="31.5">
       </div>
       <div class="ios-input-row">
         <label for="bmNote">Ghi chú</label>
@@ -1625,19 +1825,20 @@ function renderCardioBodyTab() {
       </div>
     </div>
     <button class="btn-primary-apple" style="margin-bottom:20px;" onclick="submitBodyMeasurement()">
-      Lưu cân nặng & số đo
+      Lưu chỉ số cơ thể hôm nay
     </button>
 
     <div class="section-header">
-      <span class="section-title">Lịch sử cân nặng</span>
+      <span class="section-title">Lịch sử đo gần nhất</span>
     </div>
     <div class="ios-list">
       ${bodyRows}
     </div>
 
+    <!-- 5. Check-in Chạy bộ Zone 2 -->
     <div class="section-header">
-      <span class="section-title">Check-in Chạy bộ Zone 2</span>
-      <span class="section-meta">Sáng Thứ 3 · 5 · 7</span>
+      <span class="section-title">Check-in Chạy bộ sáng (Target 5 km)</span>
+      <span class="section-meta">Thứ 3 · 5 · 7</span>
     </div>
     <div class="ios-list">
       <div class="ios-input-row">
@@ -1648,23 +1849,16 @@ function renderCardioBodyTab() {
       </div>
       <div class="ios-input-row">
         <label for="cdDur">Thời lượng (phút)</label>
-        <input type="number" inputmode="numeric" id="cdDur" value="25">
+        <input type="text" inputmode="numeric" id="cdDur" value="25">
       </div>
       <div class="ios-input-row">
-        <label for="cdDist">Cự ly (km)</label>
-        <input type="number" step="0.1" inputmode="decimal" id="cdDist" value="3.0">
+        <label for="cdDist">Cự ly hoàn thành (km)</label>
+        <input type="text" inputmode="decimal" id="cdDist" value="3.0">
       </div>
     </div>
-    <button class="btn-secondary-apple" style="width:100%;margin-bottom:20px;color:var(--green);" onclick="submitCardioLog()">
-      Hoàn thành buổi chạy sáng
+    <button class="btn-secondary-apple" style="width:100%;margin-bottom:14px;color:var(--green);" onclick="submitCardioLog()">
+      Lưu buổi chạy sáng
     </button>
-
-    <div class="section-header">
-      <span class="section-title">Lộ trình 8 tuần (0 → 5 km)</span>
-    </div>
-    <div class="ios-list">
-      ${z2Rows}
-    </div>
   `;
 }
 
@@ -1782,7 +1976,7 @@ function render() {
   const titles = {
     today: 'Tập luyện',
     progress: 'Tiến độ',
-    cardio: 'Cơ thể & Chạy',
+    cardio: 'Mục tiêu 3 Tháng',
     library: 'Thư viện'
   };
   if (titleEl) titleEl.textContent = titles[state.activeTab] || 'Hôm nay';
