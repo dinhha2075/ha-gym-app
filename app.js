@@ -1219,8 +1219,8 @@ function renderTodayTab() {
           <span class="set-index">Hiệp ${i + 1}</span>
           <span class="set-target tabular">${ex.repMin}–${ex.repMax} lần · ${ex.rir}</span>
           <div class="set-reps-box">
-            <input type="number" inputmode="numeric" class="set-reps-field tabular" value="${st.reps}"
-              onchange="updateSetReps('${ex.id}', ${i}, this.value)" aria-label="Số lần lặp hiệp ${i + 1}">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" class="set-reps-field tabular" value="${st.reps}"
+              onfocus="this.select()" onchange="updateSetReps('${ex.id}', ${i}, this.value)" aria-label="Số lần lặp hiệp ${i + 1}">
             <span class="set-reps-lbl">lần</span>
           </div>
           <button class="check-ring" onclick="toggleSetDone('${ex.id}', ${i})" aria-label="Hoàn thành hiệp ${i + 1}">
@@ -1251,8 +1251,8 @@ function renderTodayTab() {
           <div class="weight-stepper">
             <button class="stepper-circle" onclick="stepWeight('${ex.id}', -${ex.inc})" aria-label="Giảm tạ">−</button>
             <div class="weight-val-wrap">
-              <input type="number" step="0.5" inputmode="decimal" class="weight-val-input tabular" value="${s.weight}"
-                onchange="updateWeightInput('${ex.id}', this.value)" aria-label="Mức tạ kg">
+              <input type="text" inputmode="decimal" class="weight-val-input tabular" value="${s.weight}"
+                onfocus="this.select()" onchange="updateWeightInput('${ex.id}', this.value)" aria-label="Mức tạ kg">
               <span class="weight-unit">kg</span>
             </div>
             <button class="stepper-circle" onclick="stepWeight('${ex.id}', ${ex.inc})" aria-label="Tăng tạ">+</button>

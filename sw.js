@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ha-gym-apple-v3';
+const CACHE_NAME = 'ha-gym-apple-v4';
 const ASSETS = [
   './',
   './index.html',
