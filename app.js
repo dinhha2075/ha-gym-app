@@ -83,7 +83,7 @@ const EXERCISES = [
     vnSub: 'Đạp đùi · Máy Tầng 1',
     floor: 1,
     slot2F: 'T1-5',
-    slotA: 'A-1',
+    slotA: 'A-3',
     slotB: null,
     muscle: 'Đùi trước, Mông',
     equip: 'Máy Đạp đùi / Smith Squat (Tầng 1)',
@@ -106,7 +106,7 @@ const EXERCISES = [
     vnSub: 'Ngực giữa · Máy 90° Tầng 2',
     floor: 2,
     slot2F: 'T2-4',
-    slotA: 'A-2',
+    slotA: 'A-1',
     slotB: null,
     muscle: 'Ngực giữa, Tay sau',
     equip: 'Máy ngồi đẩy ngực 90 độ (Tầng 2)',
@@ -130,7 +130,7 @@ const EXERCISES = [
     vnSub: 'Kéo xô chữ V · Cáp Smith Tầng 1',
     floor: 1,
     slot2F: 'T1-6',
-    slotA: 'A-3',
+    slotA: 'A-4',
     slotB: null,
     muscle: 'Cơ xô (Lats), Tay trước',
     equip: 'Cáp kéo xô tại máy Smith (Tầng 1)',
@@ -154,7 +154,7 @@ const EXERCISES = [
     vnSub: 'Đẩy vai · Máy ngồi Tầng 1',
     floor: 1,
     slot2F: 'T1-8',
-    slotA: 'A-4',
+    slotA: 'A-5',
     slotB: null,
     muscle: 'Cơ vai (Deltoids), Tay sau',
     equip: 'Máy đẩy vai ngồi (Tầng 1)',
@@ -177,7 +177,7 @@ const EXERCISES = [
     vnSub: 'Kéo cáp tay sau · Máy Smith Tầng 1',
     floor: 1,
     slot2F: 'T1-9B',
-    slotA: 'A-5',
+    slotA: 'A-6',
     slotB: null,
     muscle: 'Cơ tay sau (Triceps)',
     equip: 'Cáp kéo tay sau tại máy Smith (Tầng 1)',
@@ -200,7 +200,7 @@ const EXERCISES = [
     vnSub: 'Cuộn cổ tay & Xách tạ · Tầng 1',
     floor: 1,
     slot2F: 'T1-9C',
-    slotA: 'A-6',
+    slotA: 'A-7',
     slotB: null,
     muscle: 'Cơ gập cổ tay, Sức nắm (Grip)',
     equip: 'Tạ đơn / Cáp Smith + 45s Farmer Hold',
@@ -224,7 +224,7 @@ const EXERCISES = [
     floor: 1,
     slot2F: null,
     slotA: null,
-    slotB: 'B-1',
+    slotB: 'B-4',
     muscle: 'Cơ đùi sau (Hamstrings)',
     equip: 'Máy đùi sau / RDL (Tầng 1)',
     sets: 3,
@@ -247,7 +247,7 @@ const EXERCISES = [
     floor: 2,
     slot2F: 'T2-1',
     slotA: null,
-    slotB: 'B-2',
+    slotB: 'B-1',
     muscle: 'Cơ ngực trên (Upper Chest)',
     equip: 'Máy Incline ghế xéo đẩy từng bên (Tầng 2)',
     sets: 3,
@@ -270,7 +270,7 @@ const EXERCISES = [
     floor: 1,
     slot2F: 'T1-7',
     slotA: null,
-    slotB: 'B-3',
+    slotB: 'B-5',
     muscle: 'Cơ lưng giữa, Cơ xô',
     equip: 'Máy ngồi Row Machine (Tầng 1)',
     sets: 2,
@@ -294,7 +294,7 @@ const EXERCISES = [
     floor: 1,
     slot2F: 'T1-9A',
     slotA: null,
-    slotB: 'B-4',
+    slotB: 'B-6',
     muscle: 'Cơ vai giữa (Lateral Deltoid)',
     equip: 'Tạ đơn (Tầng 1)',
     sets: 2,
@@ -318,7 +318,7 @@ const EXERCISES = [
     floor: 2,
     slot2F: 'T2-2',
     slotA: null,
-    slotB: 'B-5',
+    slotB: 'B-2',
     muscle: 'Brachioradialis (Cẳng tay), Biceps',
     equip: 'Máy cuộn bắp tay (Tầng 2) / Tạ đơn',
     sets: 2,
@@ -340,8 +340,8 @@ const EXERCISES = [
     vnSub: 'Gập bụng · Máy Tầng 2',
     floor: 2,
     slot2F: 'T2-3',
-    slotA: 'Opt',
-    slotB: 'B-6',
+    slotA: 'A-2',
+    slotB: 'B-3',
     muscle: 'Cơ bụng (Rectus Abdominis)',
     equip: 'Máy gập bụng (Tầng 2)',
     sets: 2,
@@ -364,9 +364,9 @@ const EXERCISES = [
     floor: 1,
     slot2F: 'Opt',
     slotA: null,
-    slotB: 'Opt',
+    slotB: 'B-7',
     muscle: 'Cơ duỗi cổ tay (Mặt trên cẳng tay)',
-    equip: 'Tạ đơn (Tầng 1)',
+    equip: 'Tạ đơn (Tầng 1) + 45s Farmer Hold',
     sets: 2,
     repMin: 12,
     repMax: 20,
@@ -430,7 +430,8 @@ const INITIAL_CARDIO_LOGS = [
 
 let state = {
   activeTab: 'today',
-  workoutMode: '2FLOOR', // '2FLOOR' | 'WORKOUT_A' | 'WORKOUT_B'
+  workoutMode: 'WORKOUT_A', // 'WORKOUT_A' | 'WORKOUT_B' | '2FLOOR'
+  userManuallySelectedMode: false,
   warmupDone: false,
   todaySession: {},
   logs: [...INITIAL_LOGS],
@@ -440,6 +441,65 @@ let state = {
   lastSync: 'Đã đồng bộ Sheet',
   libFilter: 'ALL'
 };
+
+// Analyze last completed workout session from logs & recommend next session (A <-> B)
+function getLastSessionInfo() {
+  if (!state.logs || state.logs.length === 0) {
+    return {
+      lastDate: 'Chưa có',
+      lastLabel: 'Chưa tập',
+      lastCode: 'NONE',
+      exCount: 0,
+      totalVol: 0,
+      nextMode: 'WORKOUT_A',
+      nextLabel: 'Buổi A (Tầng 2 → Tầng 1)'
+    };
+  }
+  const lastEntry = state.logs[state.logs.length - 1];
+  const lastDate = lastEntry.date;
+  const sameDayLogs = state.logs.filter(l => l.date === lastDate);
+  const totalVol = sameDayLogs.reduce((acc, l) => acc + (Number(l.volume) || 0), 0);
+
+  // Count how many A vs B workouts/exercises were done in the last session
+  let countA = 0;
+  let countB = 0;
+  let isFull2F = false;
+  sameDayLogs.forEach(l => {
+    const wStr = String(l.workout || '').toUpperCase();
+    if (wStr.includes('2 TẦNG') || wStr.includes('FULL')) isFull2F = true;
+    else if (wStr.includes('B')) countB++;
+    else if (wStr.includes('A')) countA++;
+  });
+
+  // Also check last entry's explicit workout tag
+  const lastWTag = String(lastEntry.workout || '').toUpperCase();
+  let lastCode = 'WORKOUT_A';
+  let lastLabel = 'Buổi A';
+
+  if (isFull2F && sameDayLogs.length >= 8) {
+    lastCode = '2FLOOR';
+    lastLabel = 'Gộp A+B (2 Tầng)';
+  } else if (lastWTag.includes('B') || countB > countA) {
+    lastCode = 'WORKOUT_B';
+    lastLabel = 'Buổi B';
+  } else {
+    lastCode = 'WORKOUT_A';
+    lastLabel = 'Buổi A';
+  }
+
+  const nextMode = lastCode === 'WORKOUT_A' ? 'WORKOUT_B' : 'WORKOUT_A';
+  const nextLabel = nextMode === 'WORKOUT_A' ? 'Buổi A (Tầng 2 → Tầng 1)' : 'Buổi B (Tầng 2 → Tầng 1)';
+
+  return {
+    lastDate,
+    lastLabel,
+    lastCode,
+    exCount: sameDayLogs.length,
+    totalVol,
+    nextMode,
+    nextLabel
+  };
+}
 
 function loadState() {
   try {
@@ -455,6 +515,9 @@ function loadState() {
       };
     }
   } catch (e) {}
+  // Auto-select next workout (A or B) based on the last completed session
+  const info = getLastSessionInfo();
+  state.workoutMode = info.nextMode;
   initTodayDefaults();
 }
 
@@ -530,16 +593,19 @@ function initTodayDefaults() {
 }
 
 function getTodayExercises() {
-  if (state.workoutMode === '2FLOOR') {
-    const order = ['EX08', 'EX11', 'EX12', 'EX02', 'EX01', 'EX03', 'EX09', 'EX04', 'EX10', 'EX05', 'EX06', 'EX13'];
-    return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
-  }
+  // Both WORKOUT_A and WORKOUT_B are ordered strictly Tầng 2 -> Tầng 1 (1-way pass)
   if (state.workoutMode === 'WORKOUT_A') {
-    const order = ['EX01', 'EX02', 'EX03', 'EX04', 'EX05', 'EX06', 'EX12'];
+    // Tầng 2 (A-1 Ngực ngang 90°, A-2 Gập bụng) -> Tầng 1 (A-3 Đạp đùi, A-4 Kéo xô, A-5 Đẩy vai, A-6 Tay sau, A-7 Cổ tay)
+    const order = ['EX02', 'EX12', 'EX01', 'EX03', 'EX04', 'EX05', 'EX06'];
     return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   }
   if (state.workoutMode === 'WORKOUT_B') {
-    const order = ['EX07', 'EX08', 'EX09', 'EX10', 'EX11', 'EX12', 'EX13'];
+    // Tầng 2 (B-1 Ngực trên xéo, B-2 Hammer/Reverse Curl, B-3 Gập bụng) -> Tầng 1 (B-4 Đùi sau, B-5 Kéo lưng Row, B-6 Vai ngang, B-7 Cổ tay ngược)
+    const order = ['EX08', 'EX11', 'EX12', 'EX07', 'EX09', 'EX10', 'EX13'];
+    return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
+  }
+  if (state.workoutMode === '2FLOOR') {
+    const order = ['EX08', 'EX11', 'EX12', 'EX02', 'EX01', 'EX03', 'EX09', 'EX04', 'EX10', 'EX05', 'EX06', 'EX13'];
     return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   }
   return EXERCISES;
@@ -942,6 +1008,10 @@ async function syncFromGoogleSheet(silent = false) {
 
     const now = new Date();
     state.lastSync = `Đồng bộ ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    if (!state.userManuallySelectedMode) {
+      state.workoutMode = getLastSessionInfo().nextMode;
+      initTodayDefaults();
+    }
     saveState();
     render();
     if (!silent) showToast('Đã cập nhật dữ liệu mới nhất');
@@ -955,11 +1025,18 @@ async function syncFromGoogleSheet(silent = false) {
 // ============================================================================
 let segPillPos = 0;
 
+function getModeIndex(mode) {
+  if (mode === 'WORKOUT_A') return 0;
+  if (mode === 'WORKOUT_B') return 1;
+  return 2; // '2FLOOR'
+}
+
 function setWorkoutMode(mode) {
   hapticTap(10);
-  const modeIdx = mode === '2FLOOR' ? 0 : mode === 'WORKOUT_A' ? 1 : 2;
-  const prevIdx = state.workoutMode === '2FLOOR' ? 0 : state.workoutMode === 'WORKOUT_A' ? 1 : 2;
+  const modeIdx = getModeIndex(mode);
+  const prevIdx = getModeIndex(state.workoutMode);
   state.workoutMode = mode;
+  state.userManuallySelectedMode = true;
   initTodayDefaults();
   saveState();
   render();
@@ -1079,6 +1156,10 @@ async function saveTodayWorkout() {
       state.todaySession[ex.id].sets.forEach(st => { st.done = false; });
     }
   });
+  // Advance to the next alternating workout for next session
+  state.workoutMode = getLastSessionInfo().nextMode;
+  state.userManuallySelectedMode = false;
+  initTodayDefaults();
   saveState();
   render();
 
@@ -1166,6 +1247,7 @@ async function submitCardioLog() {
 function renderTodayTab() {
   const exList = getTodayExercises();
   const latestBody = state.body[state.body.length - 1] || { weight: 74.0 };
+  const lastSession = getLastSessionInfo();
   let doneSets = 0;
   let totalSets = 0;
   let todayVolume = 0;
@@ -1188,18 +1270,25 @@ function renderTodayTab() {
   const radius = 26;
   const circum = 2 * Math.PI * radius;
   const dashOffset = circum - (pct / 100) * circum;
-  const modeIdx = state.workoutMode === '2FLOOR' ? 0 : state.workoutMode === 'WORKOUT_A' ? 1 : 2;
+  const modeIdx = getModeIndex(state.workoutMode);
+  const isOnRecommendedMode = state.workoutMode === lastSession.nextMode;
 
   let listHtml = '';
   let currentFloor = null;
 
   exList.forEach(ex => {
-    if (state.workoutMode === '2FLOOR' && ex.floor !== currentFloor) {
+    if (ex.floor !== currentFloor) {
       currentFloor = ex.floor;
+      const floorTitle = currentFloor === 2
+        ? 'Chặng 1 · Tầng 2 (Khởi động & Tập máy Tầng 2 trước)'
+        : 'Chặng 2 · Đi xuống Tầng 1 (Tập xong về luôn)';
+      const floorMeta = currentFloor === 2
+        ? (state.workoutMode === 'WORKOUT_A' ? '2 bài · ~12 phút' : state.workoutMode === 'WORKOUT_B' ? '3 bài · ~16 phút' : '4 bài · ~18 phút')
+        : (state.workoutMode === 'WORKOUT_A' ? '5 bài · ~30 phút' : state.workoutMode === 'WORKOUT_B' ? '4 bài · ~26 phút' : '8 bài · ~32 phút');
       listHtml += `
         <div class="section-header">
-          <span class="section-title">${currentFloor === 2 ? 'Chặng 1 · Tầng 2 (Ngực, Tay, Bụng)' : 'Chặng 2 · Tầng 1 (Chân, Lưng, Vai, Cổ tay)'}</span>
-          <span class="section-meta">${currentFloor === 2 ? '~18 phút' : '~32 phút · Về luôn'}</span>
+          <span class="section-title">${floorTitle}</span>
+          <span class="section-meta">${floorMeta}</span>
         </div>
       `;
     }
@@ -1267,12 +1356,27 @@ function renderTodayTab() {
   });
 
   return `
-    <!-- Sliding Segmented Control -->
+    <!-- Last Session Tracker Banner -->
+    <div class="session-tracker-banner" onclick="setWorkoutMode('${lastSession.nextMode}')" style="cursor:pointer;">
+      <div class="st-left">
+        <div class="st-prev tabular">
+          Buổi trước: <strong>${lastSession.lastLabel}</strong> (${lastSession.lastDate} · ${lastSession.exCount} bài)
+        </div>
+        <div class="st-next">
+          Hôm nay đến lượt: ${lastSession.nextLabel}
+        </div>
+      </div>
+      <span class="st-badge">
+        ${isOnRecommendedMode ? '✓ Đúng lịch' : `Chuyển ${lastSession.nextMode === 'WORKOUT_A' ? 'Buổi A' : 'Buổi B'}`}
+      </span>
+    </div>
+
+    <!-- Sliding Segmented Control (Buổi A | Buổi B | Gộp A+B) -->
     <div class="segmented-control">
       <div id="segPill" class="segmented-pill" style="transform:translateX(${modeIdx * 100}%);"></div>
-      <button class="seg-btn ${state.workoutMode === '2FLOOR' ? 'active' : ''}" onclick="setWorkoutMode('2FLOOR')">2 Tầng · 55p</button>
-      <button class="seg-btn ${state.workoutMode === 'WORKOUT_A' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_A')">Buổi A</button>
-      <button class="seg-btn ${state.workoutMode === 'WORKOUT_B' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_B')">Buổi B</button>
+      <button class="seg-btn ${state.workoutMode === 'WORKOUT_A' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_A')">Buổi A · 45p</button>
+      <button class="seg-btn ${state.workoutMode === 'WORKOUT_B' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_B')">Buổi B · 45p</button>
+      <button class="seg-btn ${state.workoutMode === '2FLOOR' ? 'active' : ''}" onclick="setWorkoutMode('2FLOOR')">Gộp A+B</button>
     </div>
 
     <!-- Apple Fitness Summary Hero -->
@@ -1378,6 +1482,46 @@ function renderProgressTab() {
     `;
   }).join('');
 
+  // Group logs by date to show Session-by-Session A/B history
+  const sessionMap = new Map();
+  state.logs.forEach(l => {
+    if (!sessionMap.has(l.date)) {
+      sessionMap.set(l.date, { date: l.date, countA: 0, countB: 0, full: false, exCount: 0, vol: 0, lastTag: l.workout });
+    }
+    const item = sessionMap.get(l.date);
+    item.exCount++;
+    item.vol += Number(l.volume) || 0;
+    item.lastTag = l.workout;
+    const wStr = String(l.workout || '').toUpperCase();
+    if (wStr.includes('2 TẦNG') || wStr.includes('FULL')) item.full = true;
+    else if (wStr.includes('B')) item.countB++;
+    else if (wStr.includes('A')) item.countA++;
+  });
+
+  const sessionRows = Array.from(sessionMap.values()).reverse().map(s => {
+    let label = 'Buổi A';
+    let color = 'var(--green)';
+    if (s.full && s.exCount >= 8) {
+      label = 'Gộp A+B (2 Tầng)';
+      color = 'var(--blue)';
+    } else if (String(s.lastTag || '').toUpperCase().includes('B') || s.countB > s.countA) {
+      label = 'Buổi B';
+      color = 'var(--orange)';
+    }
+    return `
+      <div class="ios-row">
+        <div>
+          <div style="font-size:15px;font-weight:600;" class="tabular">${s.date}</div>
+          <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;">Đã hoàn thành ${s.exCount} bài tập</div>
+        </div>
+        <div style="text-align:right;" class="tabular">
+          <div style="font-size:14px;font-weight:700;color:${color};">${label}</div>
+          <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;">${s.vol.toLocaleString('vi-VN')} kg</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
   const historyRows = [...state.logs].reverse().slice(0, 18).map(l => `
     <div class="ios-row">
       <div style="flex:1;">
@@ -1408,7 +1552,15 @@ function renderProgressTab() {
     </div>
 
     <div class="section-header">
-      <span class="section-title"> Sức mạnh 13 bài tập</span>
+      <span class="section-title">Lịch sử chu kỳ Buổi A / Buổi B</span>
+      <span class="section-meta">${sessionMap.size} buổi</span>
+    </div>
+    <div class="ios-list">
+      ${sessionRows}
+    </div>
+
+    <div class="section-header">
+      <span class="section-title">Sức mạnh 13 bài tập</span>
       <span class="section-meta">Chạm để xem kỹ thuật</span>
     </div>
     <div class="ios-list">
