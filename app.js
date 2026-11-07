@@ -1105,6 +1105,82 @@ function openDetailSheet(exId) {
   });
 }
 
+function openActivitySheet() {
+  hapticTap(12);
+  const energy = calculateEnergyStats();
+  const body = document.getElementById('sheetBody');
+  const scrim = document.getElementById('sheetScrim');
+  const panel = document.getElementById('sheetPanel');
+  if (!body || !scrim || !panel) return;
+
+  body.innerHTML = `
+    <div style="margin-bottom:14px;">
+      <div class="ex-slot-tag" style="color:var(--blue);">NĂNG LƯỢNG & BƯỚC CHÂN HÔM NAY</div>
+      <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em;">Chi tiết Calo & Bước chân</div>
+    </div>
+
+    <div class="ios-list" style="background:var(--bg-tertiary);margin-bottom:14px;">
+      <div class="ios-input-row">
+        <label for="sheetStepsInput">Tổng bước hôm nay</label>
+        <input type="text" inputmode="numeric" id="sheetStepsInput" class="tabular" value="${energy.steps}"
+          onfocus="this.select()" onchange="setStepsInput(this.value);openActivitySheet();">
+      </div>
+      <div class="ios-input-row">
+        <label for="sheetStepGoalInput">Mục tiêu bước / ngày</label>
+        <input type="text" inputmode="numeric" id="sheetStepGoalInput" class="tabular" value="${energy.stepGoal}"
+          onfocus="this.select()" onchange="updateBodyTarget3M('stepGoal', this.value);openActivitySheet();">
+      </div>
+      <div class="ios-row tabular">
+        <span style="color:var(--label-secondary);font-size:14px;">Quãng đường & Calo bước</span>
+        <span style="font-weight:600;font-size:14px;color:var(--blue);">${energy.stepKm} km · ${energy.stepBurnedKcal} / ${energy.stepEstKcal} kcal</span>
+      </div>
+    </div>
+
+    <div class="ios-list" style="background:var(--bg-tertiary);margin-bottom:14px;">
+      <div class="ios-row tabular">
+        <span style="color:var(--label-secondary);font-size:14px;">Calo buổi tập (Tạ + Cardio)</span>
+        <span style="font-weight:600;font-size:14px;color:var(--orange);">${energy.workoutBurnedKcal} / ${energy.workoutEstKcal} kcal</span>
+      </div>
+      <div class="ios-row tabular">
+        <span style="color:var(--label-secondary);font-size:14px;">Calo vận động chủ động (Active)</span>
+        <span style="font-weight:600;font-size:14px;color:var(--red);">${energy.dailyActiveBurned} / ${energy.dailyActiveEst} kcal</span>
+      </div>
+      <div class="ios-row tabular">
+        <span style="color:var(--label-secondary);font-size:14px;">Chuyển hóa nền (BMR + Sinh hoạt)</span>
+        <span style="font-weight:600;font-size:14px;">${energy.baseRestDayKcal.toLocaleString('vi-VN')} kcal</span>
+      </div>
+      <div class="ios-row tabular">
+        <span style="color:var(--label-secondary);font-size:14px;">Tổng tiêu hao cả ngày (TDEE)</span>
+        <span style="font-weight:700;font-size:14px;color:var(--green);">${energy.dailyTotalBurnedTDEE.toLocaleString('vi-VN')} / ${energy.dailyTotalEstTDEE.toLocaleString('vi-VN')} kcal</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;">
+      <button class="btn-secondary-apple" style="color:${pedometerActive ? 'var(--green)' : 'var(--label-primary)'};" onclick="toggleLivePedometer();closeDetailSheet();">
+        ${pedometerActive ? 'Dừng đếm bước' : 'Bật tự đếm bước'}
+      </button>
+      <button class="btn-secondary-apple tabular" onclick="addSteps(500);openActivitySheet();">+500 bước</button>
+      <button class="btn-secondary-apple tabular" onclick="addSteps(1000);openActivitySheet();">+1.000 bước</button>
+    </div>
+  `;
+
+  scrim.classList.add('open');
+  sheetOpen = true;
+  const h = panel.offsetHeight || 380;
+  currentSheetY = h;
+
+  animateSpring('detailSheet', {
+    from: currentSheetY,
+    to: 0,
+    damping: 0.86,
+    response: 0.34,
+    onUpdate: (y) => {
+      currentSheetY = y;
+      panel.style.transform = `translateY(${Math.max(-20, y)}px)`;
+    }
+  });
+}
+
 function closeDetailSheet(releaseVelocity = 0) {
   const scrim = document.getElementById('sheetScrim');
   const panel = document.getElementById('sheetPanel');
@@ -1616,7 +1692,7 @@ function renderTodayTab() {
       <div class="apple-card ${isCompleted ? 'completed' : ''}">
         <div class="card-top">
           <div onclick="openDetailSheet('${ex.id}')" style="cursor:pointer;flex:1;">
-            <div class="ex-slot-tag tabular">${slotLabel} · TẦNG ${ex.floor} · NGHỈ ${ex.restSec}S · <span style="color:var(--orange);">🔥 ${exCal.burnedKcal}/${exCal.estKcal} kcal</span></div>
+            <div class="ex-slot-tag tabular">${slotLabel} · TẦNG ${ex.floor} · ${exCal.burnedKcal}/${exCal.estKcal} KCAL</div>
             <div class="ex-name">${ex.title}</div>
             <div class="ex-sub">${ex.vnSub}</div>
           </div>
@@ -1648,180 +1724,96 @@ function renderTodayTab() {
     `;
   });
 
+  // Concentric 3-ring geometry (Outer: Workout Calo, Middle: Sets, Inner: Steps)
+  const r1 = 29, c1 = 2 * Math.PI * r1, off1 = c1 - (Math.min(100, energy.workoutPct) / 100) * c1;
+  const r2 = 21.5, c2 = 2 * Math.PI * r2, off2 = c2 - (Math.min(100, pct) / 100) * c2;
+  const r3 = 14, c3 = 2 * Math.PI * r3, off3 = c3 - (Math.min(100, energy.stepPct) / 100) * c3;
+
   return `
-    <!-- Last Session Tracker Banner -->
-    <div class="session-tracker-banner" onclick="setWorkoutMode('${lastSession.nextMode}')" style="cursor:pointer;">
-      <div class="st-left">
-        <div class="st-prev tabular">
-          Buổi trước: <strong>${lastSession.lastLabel}</strong> (${lastSession.lastDate} · ${lastSession.exCount} bài)
-        </div>
-        <div class="st-next">
-          Hôm nay đến lượt: ${lastSession.nextLabel}
-        </div>
-      </div>
-      <span class="st-badge">
-        ${isOnRecommendedMode ? '✓ Đúng lịch' : `Chuyển ${lastSession.nextMode === 'WORKOUT_A' ? 'Buổi A' : 'Buổi B'}`}
-      </span>
+    <!-- 1-Line Subtle Session Context -->
+    <div class="session-caption tabular" onclick="setWorkoutMode('${lastSession.nextMode}')" style="cursor:pointer;">
+      <span>Trước: ${lastSession.lastLabel} (${lastSession.lastDate})</span>
+      <span>Hôm nay: <strong>${lastSession.nextLabel.split(' (')[0]}</strong> ${isOnRecommendedMode ? '✓' : '→'}</span>
     </div>
 
     <!-- Sliding Segmented Control (Buổi A | Buổi B | Gộp A+B) -->
     <div class="segmented-control">
       <div id="segPill" class="segmented-pill" style="transform:translateX(${modeIdx * 100}%);"></div>
-      <button class="seg-btn ${state.workoutMode === 'WORKOUT_A' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_A')">Buổi A · 45p</button>
-      <button class="seg-btn ${state.workoutMode === 'WORKOUT_B' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_B')">Buổi B · 45p</button>
+      <button class="seg-btn ${state.workoutMode === 'WORKOUT_A' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_A')">Buổi A</button>
+      <button class="seg-btn ${state.workoutMode === 'WORKOUT_B' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_B')">Buổi B</button>
       <button class="seg-btn ${state.workoutMode === '2FLOOR' ? 'active' : ''}" onclick="setWorkoutMode('2FLOOR')">Gộp A+B</button>
     </div>
 
-    <!-- Apple Fitness Summary Hero -->
-    <div class="summary-hero">
-      <div class="ring-wrap">
-        <svg viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="${radius}" fill="none" stroke="rgba(48, 209, 88, 0.18)" stroke-width="6.5"/>
-          <circle cx="32" cy="32" r="${radius}" fill="none" stroke="#30D158" stroke-width="6.5"
-            stroke-linecap="round" stroke-dasharray="${circum}" stroke-dashoffset="${dashOffset}"
-            style="transition:stroke-dashoffset 400ms cubic-bezier(0.22, 1, 0.36, 1);"/>
-        </svg>
-        <div class="ring-center-text tabular">${pct}%</div>
-      </div>
-      <div class="hero-metrics">
-        <div class="metric-item">
-          <div class="m-label">Hiệp tập</div>
-          <div class="m-value tabular">${doneSets}<span class="m-unit">/${totalSets}</span></div>
+    <!-- Unified Apple Fitness Activity Card (Rings + Workout/Daily Calo + Steps in ONE card) -->
+    <div class="af-summary-card tabular">
+      <div class="af-top-row" onclick="openActivitySheet()">
+        <div class="af-rings-wrap" title="Chạm xem chi tiết Năng lượng & Bước chân">
+          <svg viewBox="0 0 68 68">
+            <circle cx="34" cy="34" r="${r1}" fill="none" stroke="rgba(255, 69, 58, 0.18)" stroke-width="5.5"/>
+            <circle cx="34" cy="34" r="${r1}" fill="none" stroke="#FF453A" stroke-width="5.5"
+              stroke-linecap="round" stroke-dasharray="${c1}" stroke-dashoffset="${off1}"
+              style="transition:stroke-dashoffset 400ms cubic-bezier(0.22, 1, 0.36, 1);"/>
+            <circle cx="34" cy="34" r="${r2}" fill="none" stroke="rgba(48, 209, 88, 0.18)" stroke-width="5.5"/>
+            <circle cx="34" cy="34" r="${r2}" fill="none" stroke="#30D158" stroke-width="5.5"
+              stroke-linecap="round" stroke-dasharray="${c2}" stroke-dashoffset="${off2}"
+              style="transition:stroke-dashoffset 400ms cubic-bezier(0.22, 1, 0.36, 1);"/>
+            <circle cx="34" cy="34" r="${r3}" fill="none" stroke="rgba(10, 132, 255, 0.18)" stroke-width="5.5"/>
+            <circle cx="34" cy="34" r="${r3}" fill="none" stroke="#0A84FF" stroke-width="5.5"
+              stroke-linecap="round" stroke-dasharray="${c3}" stroke-dashoffset="${off3}"
+              style="transition:stroke-dashoffset 400ms cubic-bezier(0.22, 1, 0.36, 1);"/>
+          </svg>
         </div>
-        <div class="metric-item">
-          <div class="m-label">Khối lượng</div>
-          <div class="m-value tabular">${todayVolume.toLocaleString('vi-VN')}<span class="m-unit"> kg</span></div>
-        </div>
-        <div class="metric-item">
-          <div class="m-label">Calo buổi tập</div>
-          <div class="m-value tabular" style="color:var(--orange);">${energy.workoutBurnedKcal}<span class="m-unit">/${energy.workoutEstKcal}</span></div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Apple Fitness Energy (Session vs Daily Calories) & Daily Steps Dashboard -->
-    <div class="energy-grid tabular">
-      <!-- Tile 1: Workout Calories (Burned vs Estimated) -->
-      <div class="energy-tile">
-        <div>
-          <div class="energy-eyebrow" style="color:var(--orange);">
-            <span>🔥 Calo Buổi Tập</span>
-            <span>${energy.workoutPct}%</span>
+        <div class="af-metrics-2x2">
+          <div>
+            <div class="af-m-label">Calo buổi tập</div>
+            <div class="af-m-val" style="color:var(--red);">${energy.workoutBurnedKcal} <span class="af-m-sub">/ ${energy.workoutEstKcal}</span></div>
           </div>
-          <div class="energy-main-num">
-            ${energy.workoutBurnedKcal} <span class="energy-sub-unit">/ ${energy.workoutEstKcal} kcal</span>
+          <div>
+            <div class="af-m-label">Calo trong ngày</div>
+            <div class="af-m-val" style="color:var(--orange);">${energy.dailyTotalBurnedTDEE.toLocaleString('vi-VN')} <span class="af-m-sub">/ ${energy.dailyTotalEstTDEE.toLocaleString('vi-VN')}</span></div>
           </div>
-        </div>
-        <div>
-          <div class="apple-progress-track" style="height:5px;margin:7px 0;">
-            <div class="apple-progress-fill" style="width:${energy.workoutPct}%;background:var(--orange);"></div>
+          <div>
+            <div class="af-m-label">Hiệp tập · Tải</div>
+            <div class="af-m-val" style="color:var(--green);">${doneSets}/${totalSets} <span class="af-m-sub">· ${todayVolume.toLocaleString('vi-VN')}kg</span></div>
           </div>
-          <div class="energy-foot">
-            Tạ: <strong>${energy.setsBurnedKcal}</strong>/${energy.setsEstKcal} · Cardio: <strong>${energy.addonsBurnedKcal}</strong> kcal
+          <div>
+            <div class="af-m-label">Bước chân (${energy.stepKm}km)</div>
+            <div class="af-m-val" style="color:var(--blue);"><span id="liveStepCountNum">${energy.steps.toLocaleString('vi-VN')}</span> <span class="af-m-sub">/ ${(energy.stepGoal / 1000).toFixed(0)}k</span></div>
           </div>
         </div>
       </div>
 
-      <!-- Tile 2: Daily Calories (Active + Total TDEE) -->
-      <div class="energy-tile">
-        <div>
-          <div class="energy-eyebrow" style="color:var(--red);">
-            <span>⚡ Calo Trong Ngày</span>
-            <span>${energy.dailyActivePct}%</span>
-          </div>
-          <div class="energy-main-num">
-            ${energy.dailyActiveBurned} <span class="energy-sub-unit">/ ${energy.dailyActiveEst} kcal</span>
-          </div>
-        </div>
-        <div>
-          <div class="apple-progress-track" style="height:5px;margin:7px 0;">
-            <div class="apple-progress-fill" style="width:${energy.dailyActivePct}%;background:var(--red);"></div>
-          </div>
-          <div class="energy-foot">
-            Tổng TDEE: <strong>${energy.dailyTotalBurnedTDEE.toLocaleString('vi-VN')}</strong>/${energy.dailyTotalEstTDEE.toLocaleString('vi-VN')} kcal
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Daily Steps Tracker Card -->
-    <div class="steps-card tabular">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:0.03em;text-transform:uppercase;">
-            👟 Bước Chân Trong Ngày ${pedometerActive ? '· <span style="color:var(--green);">● ĐANG ĐẾM</span>' : ''}
-          </div>
-          <div style="font-size:23px;font-weight:700;letter-spacing:-0.025em;margin-top:3px;">
-            <span id="liveStepCountNum">${energy.steps.toLocaleString('vi-VN')}</span>
-            <span style="font-size:13px;font-weight:500;color:var(--label-secondary);">/ ${energy.stepGoal.toLocaleString('vi-VN')} bước (${energy.stepPct}%)</span>
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:13px;font-weight:700;color:var(--blue);">${energy.stepKm} km</div>
-          <div style="font-size:11px;color:var(--label-secondary);margin-top:2px;">Đốt ${energy.stepBurnedKcal}/${energy.stepEstKcal} kcal</div>
-        </div>
-      </div>
-
-      <div class="apple-progress-track" style="height:6px;margin:8px 0;">
-        <div class="apple-progress-fill" style="width:${energy.stepPct}%;background:var(--blue);"></div>
-      </div>
-
-      <div class="steps-chip-row">
-        <button class="step-chip-btn ${pedometerActive ? 'sensor-active' : ''}" onclick="toggleLivePedometer()">
-          <span>${pedometerActive ? '⏸ Dừng đếm' : '🚶 Tự đếm'}</span>
+      <!-- Compact 1-Line Step Actions inside the same card -->
+      <div class="af-divider-row">
+        <button class="af-pill ${pedometerActive ? 'active-green' : ''}" onclick="toggleLivePedometer()">
+          ${pedometerActive ? '● Đang đếm bước' : 'Tự đếm bước'}
         </button>
-        <button class="step-chip-btn" onclick="addSteps(500)">+500</button>
-        <button class="step-chip-btn" onclick="addSteps(1000)">+1.000</button>
-        <button class="step-chip-btn" onclick="addSteps(2000)">+2.000</button>
-      </div>
-
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding-top:9px;border-top:0.5px solid var(--separator);font-size:13px;">
-        <span style="color:var(--label-secondary);">Nhập tổng bước từ Đồng hồ / Điện thoại:</span>
-        <div class="set-reps-box" style="margin-right:0;min-width:96px;padding:3px 10px;">
-          <input type="text" inputmode="numeric" id="todayStepsInput" class="set-reps-field tabular" style="width:58px;color:var(--blue);"
-            value="${energy.steps}" onfocus="this.select()" onchange="setStepsInput(this.value)" aria-label="Tổng bước chân hôm nay">
-          <span class="set-reps-lbl">bước</span>
+        <div style="display:flex;gap:6px;">
+          <button class="af-pill" onclick="addSteps(500)">+500</button>
+          <button class="af-pill" onclick="addSteps(1000)">+1.000</button>
+          <button class="af-pill active-blue" onclick="openActivitySheet()">Nhập</button>
         </div>
       </div>
     </div>
 
-    <!-- Quick Timers Strip (Warm-up & Finisher with Calorie Check) -->
-    <div class="section-header">
-      <span class="section-title">Bấm giờ & Tích Calo bổ trợ</span>
-      <span class="section-meta">Chạm hẹn giờ · Tích ✓ cộng Calo</span>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
-      <button class="btn-secondary-apple addon-timer-btn ${energy.act.bikeDone ? 'done' : ''} tabular" style="padding:9px 4px;font-size:12px;flex-direction:column;gap:2px;"
-        onclick="triggerAddonActivity('bikeDone', 180, 'Đạp xe khởi động Tầng 2', ${energy.bikeKcal})">
-        <span style="color:var(--green);font-weight:700;">03:00</span>
-        <span style="color:var(--label-primary);font-size:11px;">Đạp xe</span>
-        <span onclick="toggleAddonCheck(event, 'bikeDone', 'Đạp xe 3p', ${energy.bikeKcal})" style="font-size:10px;color:${energy.act.bikeDone ? 'var(--green)' : 'var(--orange)'};font-weight:700;">
-          ${energy.act.bikeDone ? `✓ +${energy.bikeKcal} kcal` : `+${energy.bikeKcal} kcal`}
-        </span>
+    <!-- Minimalist 1-Line Quick Timer Pill Strip -->
+    <div class="af-timer-strip tabular">
+      <button class="af-timer-pill ${energy.act.bikeDone ? 'done' : ''}"
+        onclick="triggerAddonActivity('bikeDone', 180, 'Đạp xe khởi động', ${energy.bikeKcal})">
+        ${energy.act.bikeDone ? '✓ ' : ''}Đạp xe 3p
       </button>
-      <button class="btn-secondary-apple addon-timer-btn ${energy.act.farmerDone ? 'done' : ''} tabular" style="padding:9px 4px;font-size:12px;flex-direction:column;gap:2px;"
-        onclick="triggerAddonActivity('farmerDone', 45, 'Xách tạ nặng Farmer Hold', ${energy.farmerKcal})">
-        <span style="color:var(--green);font-weight:700;">00:45</span>
-        <span style="color:var(--label-primary);font-size:11px;">Xách tạ</span>
-        <span onclick="toggleAddonCheck(event, 'farmerDone', 'Xách tạ 45s', ${energy.farmerKcal})" style="font-size:10px;color:${energy.act.farmerDone ? 'var(--green)' : 'var(--orange)'};font-weight:700;">
-          ${energy.act.farmerDone ? `✓ +${energy.farmerKcal} kcal` : `+${energy.farmerKcal} kcal`}
-        </span>
+      <button class="af-timer-pill ${energy.act.farmerDone ? 'done' : ''}"
+        onclick="triggerAddonActivity('farmerDone', 45, 'Xách tạ Farmer Hold', ${energy.farmerKcal})">
+        ${energy.act.farmerDone ? '✓ ' : ''}Xách tạ 45s
       </button>
-      <button class="btn-secondary-apple addon-timer-btn ${energy.act.inclineDone ? 'done' : ''} tabular" style="padding:9px 4px;font-size:12px;flex-direction:column;gap:2px;"
-        onclick="triggerAddonActivity('inclineDone', 600, 'Đi bộ dốc 10% · Tốc 5.0', ${energy.inclineKcal})">
-        <span style="color:var(--green);font-weight:700;">10:00</span>
-        <span style="color:var(--label-primary);font-size:11px;">Đi bộ dốc</span>
-        <span onclick="toggleAddonCheck(event, 'inclineDone', 'Đi bộ dốc 10p', ${energy.inclineKcal})" style="font-size:10px;color:${energy.act.inclineDone ? 'var(--green)' : 'var(--orange)'};font-weight:700;">
-          ${energy.act.inclineDone ? `✓ +${energy.inclineKcal} kcal` : `+${energy.inclineKcal} kcal`}
-        </span>
+      <button class="af-timer-pill ${energy.act.inclineDone ? 'done' : ''}"
+        onclick="triggerAddonActivity('inclineDone', 600, 'Đi bộ dốc 10%', ${energy.inclineKcal})">
+        ${energy.act.inclineDone ? '✓ ' : ''}Đi bộ dốc 10p
       </button>
-      <button class="btn-secondary-apple addon-timer-btn ${energy.act.bagDone ? 'done' : ''} tabular" style="padding:9px 4px;font-size:12px;flex-direction:column;gap:2px;"
-        onclick="triggerAddonActivity('bagDone', 120, 'Combo Đấm & Đá bao cát', ${energy.bagKcal})">
-        <span style="color:var(--green);font-weight:700;">02:00</span>
-        <span style="color:var(--label-primary);font-size:11px;">Bao cát</span>
-        <span onclick="toggleAddonCheck(event, 'bagDone', 'Bao cát 2p', ${energy.bagKcal})" style="font-size:10px;color:${energy.act.bagDone ? 'var(--green)' : 'var(--orange)'};font-weight:700;">
-          ${energy.act.bagDone ? `✓ +${energy.bagKcal} kcal` : `+${energy.bagKcal} kcal`}
-        </span>
+      <button class="af-timer-pill ${energy.act.bagDone ? 'done' : ''}"
+        onclick="triggerAddonActivity('bagDone', 120, 'Đấm bao cát', ${energy.bagKcal})">
+        ${energy.act.bagDone ? '✓ ' : ''}Bao cát 2p
       </button>
     </div>
 
@@ -2021,33 +2013,23 @@ function renderCardioBodyTab() {
     const tWeight = Number(et[ex.id]) || DEFAULT_EX_TARGETS_3M[ex.id] || 50;
     const pct = tWeight > 0 ? Math.min(100, Math.round((curPR / tWeight) * 100)) : 0;
     sumStrengthPct += pct;
-    const diff = Math.max(0, Number((tWeight - curPR).toFixed(1)));
-    const barColor = pct >= 100 ? 'var(--green)' : pct >= 75 ? '#30D158' : 'var(--blue)';
+    const barColor = pct >= 100 ? 'var(--green)' : 'var(--blue)';
 
     return `
-      <div class="ios-row" style="flex-direction:column;align-items:stretch;gap:6px;padding:13px 16px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
-          <div onclick="openDetailSheet('${ex.id}')" style="cursor:pointer;flex:1;">
-            <span style="font-size:11px;font-weight:700;color:var(--green);">${ex.slotA || ex.slotB || ex.id} · TẦNG ${ex.floor}</span>
-            <div style="font-size:15px;font-weight:600;margin-top:1px;">${ex.title}</div>
-          </div>
-          <div style="display:flex;align-items:baseline;gap:4px;" class="tabular">
-            <span style="font-size:13px;color:var(--label-secondary);">Hiện tại <strong>${curPR > 0 ? `${curPR}kg` : '—'}</strong> → Đích</span>
-            <div class="set-reps-box" style="margin-right:0;min-width:80px;padding:4px 10px;">
-              <input type="text" inputmode="decimal" class="set-reps-field tabular" style="width:48px;color:var(--green);"
-                value="${tWeight}" onfocus="this.select()" onchange="updateExTarget3M('${ex.id}', this.value)" aria-label="Target 3 tháng ${ex.title}">
-              <span class="set-reps-lbl">kg</span>
+      <div class="ios-row" style="padding:11px 16px;">
+        <div onclick="openDetailSheet('${ex.id}')" style="cursor:pointer;flex:1;padding-right:8px;">
+          <div style="font-size:15px;font-weight:600;">${ex.title}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+            <div style="flex:1;max-width:110px;height:3.5px;background:var(--bg-tertiary);border-radius:999px;overflow:hidden;">
+              <div style="width:${pct}%;height:100%;background:${barColor};"></div>
             </div>
+            <span style="font-size:12px;color:var(--label-secondary);" class="tabular">${curPR > 0 ? `${curPR} kg` : '—'} (${pct}%)</span>
           </div>
         </div>
-        <div class="apple-progress-track" style="margin:2px 0;">
-          <div class="apple-progress-fill" style="width:${pct}%;background:${barColor};"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--label-secondary);" class="tabular">
-          <span>Đạt ${pct}% mục tiêu 3 tháng</span>
-          <span style="color:${diff === 0 ? 'var(--green)' : 'var(--label-secondary)'};font-weight:600;">
-            ${diff === 0 ? '✓ Đã đạt Target!' : `Còn +${diff} kg (+${Math.ceil(diff / ex.inc)} lần lên tạ)`}
-          </span>
+        <div class="set-reps-box" style="margin-right:0;min-width:78px;padding:4px 10px;">
+          <input type="text" inputmode="decimal" class="set-reps-field tabular" style="width:46px;color:var(--green);"
+            value="${tWeight}" onfocus="this.select()" onchange="updateExTarget3M('${ex.id}', this.value)" aria-label="Target 3 tháng ${ex.title}">
+          <span class="set-reps-lbl">kg</span>
         </div>
       </div>
     `;
@@ -2055,7 +2037,7 @@ function renderCardioBodyTab() {
 
   const avgStrengthPct = Math.round(sumStrengthPct / EXERCISES.length);
 
-  const bodyRows = [...state.body].reverse().slice(0, 6).map(b => `
+  const bodyRows = [...state.body].reverse().slice(0, 5).map(b => `
     <div class="ios-row">
       <div>
         <div style="font-size:15px;font-weight:600;" class="tabular">${b.date}</div>
@@ -2069,16 +2051,16 @@ function renderCardioBodyTab() {
   `).join('');
 
   return `
-    <!-- 1. 3-Month Body Weight & Recomposition Target Card -->
+    <!-- 1. Minimalist Hero Card: 3-Month Weight Target -->
     <div class="apple-card">
-      <div class="ex-slot-tag">LỘ TRÌNH TARGET 3 THÁNG (12 TUẦN · BODY RECOMPOSITION)</div>
+      <div class="ex-slot-tag">MỤC TIÊU CÂN NẶNG 3 THÁNG</div>
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:4px;">
         <div>
           <span style="font-size:12px;color:var(--label-secondary);">Hiện tại</span>
           <div style="font-size:28px;font-weight:700;letter-spacing:-0.025em;" class="tabular">${currentW} <span style="font-size:15px;font-weight:500;color:var(--label-secondary);">kg</span></div>
         </div>
         <div style="text-align:right;">
-          <span style="font-size:12px;color:var(--label-secondary);">Target 3 Tháng (Chạm để sửa)</span>
+          <span style="font-size:12px;color:var(--label-secondary);">Đích 3 tháng</span>
           <div style="display:flex;align-items:baseline;justify-content:flex-end;gap:4px;margin-top:2px;">
             <input type="text" inputmode="decimal" class="weight-val-input tabular" style="width:72px;text-align:right;color:var(--green);font-size:24px !important;"
               value="${target3MW}" onfocus="this.select()" onchange="updateBodyTarget3M('month3Weight', this.value)">
@@ -2087,101 +2069,44 @@ function renderCardioBodyTab() {
         </div>
       </div>
 
-      <div class="apple-progress-track" style="height:8px;margin:12px 0;">
+      <div class="apple-progress-track" style="height:6px;margin:10px 0;">
         <div class="apple-progress-fill" style="width:${weight3MPct}%;"></div>
       </div>
 
-      <!-- 3 Monthly Milestones Strip -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--separator);text-align:center;" class="tabular">
-        <div>
-          <div style="font-size:10px;color:var(--label-secondary);">THÁNG 1</div>
-          <div style="font-size:14px;font-weight:700;margin-top:2px;color:${currentW <= bt.month1Weight ? 'var(--green)' : 'var(--label-primary)'};">${bt.month1Weight} kg</div>
-        </div>
-        <div>
-          <div style="font-size:10px;color:var(--label-secondary);">THÁNG 2</div>
-          <div style="font-size:14px;font-weight:700;margin-top:2px;color:${currentW <= bt.month2Weight ? 'var(--green)' : 'var(--label-primary)'};">${bt.month2Weight} kg</div>
-        </div>
-        <div>
-          <div style="font-size:10px;color:var(--green);font-weight:700;">THÁNG 3</div>
-          <div style="font-size:14px;font-weight:700;margin-top:2px;color:var(--green);">${target3MW} kg</div>
-        </div>
-        <div>
-          <div style="font-size:10px;color:var(--label-secondary);">ĐÍCH CUỐI</div>
-          <div style="font-size:14px;font-weight:700;margin-top:2px;">${finalW} kg</div>
-        </div>
-      </div>
-
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--label-secondary);margin-top:10px;" class="tabular">
-        <span>Đã giảm: −${lostSoFar.toFixed(1)} kg (${weight3MPct}%)</span>
-        <span style="color:var(--green);font-weight:600;">Còn cách đích 3 tháng: −${remain3MW} kg</span>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--label-secondary);" class="tabular">
+        <span>T1: ${bt.month1Weight}kg · T2: ${bt.month2Weight}kg · T3: ${target3MW}kg · Đích: ${finalW}kg</span>
+        <span style="color:var(--green);font-weight:600;">Còn −${remain3MW} kg</span>
       </div>
     </div>
 
-    <!-- 2. Secondary 3-Month Body & Cardio Targets (Waist, Forearm, 5km Run, Strength Avg) -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;" class="tabular">
-      <div class="apple-card" style="margin-bottom:0;padding:13px;">
-        <div style="font-size:11px;color:var(--label-secondary);font-weight:600;">VÒNG EO 3 THÁNG</div>
-        <div style="font-size:19px;font-weight:700;margin-top:4px;">
-          ${currentWaist ? `${currentWaist}` : '—'} <span style="font-size:13px;color:var(--label-secondary);">→ ${bt.targetWaist} cm</span>
-        </div>
-        <div style="font-size:11px;color:var(--green);margin-top:4px;">Giảm mỡ nội tạng</div>
-      </div>
-
-      <div class="apple-card" style="margin-bottom:0;padding:13px;">
-        <div style="font-size:11px;color:var(--label-secondary);font-weight:600;">CẲNG TAY VẠM VỠ</div>
-        <div style="font-size:19px;font-weight:700;margin-top:4px;">
-          ${currentForearm ? `${currentForearm}` : '—'} <span style="font-size:13px;color:var(--label-secondary);">→ ${bt.targetForearm} cm</span>
-        </div>
-        <div style="font-size:11px;color:var(--green);margin-top:4px;">Xách tạ 30kg × 60s</div>
-      </div>
-
-      <div class="apple-card" style="margin-bottom:0;padding:13px;">
-        <div style="font-size:11px;color:var(--label-secondary);font-weight:600;">SỨC MẠNH 13 BÀI</div>
-        <div style="font-size:19px;font-weight:700;margin-top:4px;color:var(--green);">
-          ${avgStrengthPct}% <span style="font-size:12px;color:var(--label-secondary);font-weight:500;">Target 3T</span>
-        </div>
-        <div style="font-size:11px;color:var(--label-secondary);margin-top:4px;">Trung bình 13 máy</div>
-      </div>
-
-      <div class="apple-card" style="margin-bottom:0;padding:13px;">
-        <div style="font-size:11px;color:var(--label-secondary);font-weight:600;">CHẠY BỘ ZONE 2</div>
-        <div style="font-size:19px;font-weight:700;margin-top:4px;">
-          ${maxRunKm} <span style="font-size:13px;color:var(--label-secondary);">→ ${bt.targetRunKm} km</span>
-        </div>
-        <div style="font-size:11px;color:var(--green);margin-top:4px;">Đạt ${runPct}% mốc 5km</div>
-      </div>
+    <!-- 2. Clean iOS Grouped List: Daily Energy, Steps & Body Targets -->
+    <div class="section-header">
+      <span class="section-title">Chỉ số cơ thể & Năng lượng</span>
+      <span class="section-meta">Đạt ${avgStrengthPct}% sức mạnh</span>
     </div>
-
-    <!-- 2B. Daily Step Target & Calorie Deficit Plan -->
-    <div class="apple-card tabular">
-      <div class="ex-slot-tag" style="color:var(--orange);">MỤC TIÊU BƯỚC CHÂN & NGÂN SÁCH CALO HÀNG NGÀY</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-bottom:10px;border-bottom:0.5px solid var(--separator);">
+    <div class="ios-list tabular">
+      <div class="ios-row" onclick="openActivitySheet()" style="cursor:pointer;">
         <div>
-          <div style="font-size:14px;font-weight:600;">Mục tiêu bước chân / ngày</div>
-          <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;">Hôm nay: ${energy.steps.toLocaleString('vi-VN')} bước (${energy.stepKm} km · ${energy.stepBurnedKcal} kcal)</div>
+          <div style="font-size:15px;font-weight:500;">Ngân sách Calo giảm mỡ</div>
+          <div style="font-size:12px;color:var(--label-secondary);">TDEE dự tính ${energy.dailyTotalEstTDEE.toLocaleString('vi-VN')} kcal · Thâm hụt −550</div>
         </div>
-        <div class="set-reps-box" style="margin-right:0;min-width:96px;padding:4px 10px;">
-          <input type="text" inputmode="numeric" class="set-reps-field tabular" style="width:58px;color:var(--blue);"
-            value="${energy.stepGoal}" onfocus="this.select()" onchange="updateBodyTarget3M('stepGoal', this.value)" aria-label="Mục tiêu bước chân mỗi ngày">
-          <span class="set-reps-lbl">bước</span>
-        </div>
+        <span style="font-size:15px;font-weight:600;color:var(--green);">Ăn ~${energy.recIntakeForCut.toLocaleString('vi-VN')} kcal</span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;text-align:center;">
-        <div>
-          <div style="font-size:10px;color:var(--label-secondary);">TDEE DỰ TÍNH</div>
-          <div style="font-size:15px;font-weight:700;color:var(--orange);margin-top:2px;">${energy.dailyTotalEstTDEE.toLocaleString('vi-VN')}</div>
-          <div style="font-size:10px;color:var(--label-secondary);">kcal/ngày</div>
-        </div>
-        <div>
-          <div style="font-size:10px;color:var(--label-secondary);">ĐÃ ĐỐT HÔM NAY</div>
-          <div style="font-size:15px;font-weight:700;color:var(--red);margin-top:2px;">${energy.dailyTotalBurnedTDEE.toLocaleString('vi-VN')}</div>
-          <div style="font-size:10px;color:var(--label-secondary);">Active ${energy.dailyActiveBurned} kcal</div>
-        </div>
-        <div>
-          <div style="font-size:10px;color:var(--green);font-weight:700;">ĂN ĐỂ VỀ 65KG</div>
-          <div style="font-size:15px;font-weight:700;color:var(--green);margin-top:2px;">~${energy.recIntakeForCut.toLocaleString('vi-VN')}</div>
-          <div style="font-size:10px;color:var(--label-secondary);">kcal (−550 kcal)</div>
-        </div>
+      <div class="ios-input-row">
+        <label for="targetStepGoal">Mục tiêu bước chân / ngày</label>
+        <input type="text" inputmode="numeric" id="targetStepGoal" value="${energy.stepGoal}" onchange="updateBodyTarget3M('stepGoal', this.value)">
+      </div>
+      <div class="ios-input-row">
+        <label for="targetWaistInput">Vòng eo đích (cm) ${currentWaist ? `· Hiện ${currentWaist}` : ''}</label>
+        <input type="text" inputmode="decimal" id="targetWaistInput" value="${bt.targetWaist}" onchange="updateBodyTarget3M('targetWaist', this.value)">
+      </div>
+      <div class="ios-input-row">
+        <label for="targetForearmInput">Cẳng tay đích (cm) ${currentForearm ? `· Hiện ${currentForearm}` : ''}</label>
+        <input type="text" inputmode="decimal" id="targetForearmInput" value="${bt.targetForearm}" onchange="updateBodyTarget3M('targetForearm', this.value)">
+      </div>
+      <div class="ios-row">
+        <span style="font-size:15px;">Chạy bộ sáng Zone 2</span>
+        <span style="font-size:15px;font-weight:600;color:var(--blue);">${maxRunKm} / ${bt.targetRunKm} km (${runPct}%)</span>
       </div>
     </div>
 
@@ -2416,7 +2341,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=9', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=10', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
