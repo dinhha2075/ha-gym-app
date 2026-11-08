@@ -1081,23 +1081,58 @@ function showToast(msg) {
 let sheetOpen = false;
 let currentSheetY = 400;
 
+const EX_IMG_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
+const EX_PHOTOS = {
+  EX01: [{ label: '1. Hạ tạ sâu', url: 'Leg_Press/0.jpg' }, { label: '2. Đạp lên (không khóa gối)', url: 'Leg_Press/1.jpg' }],
+  EX02: [{ label: '1. Mở ngực 90°', url: 'Leverage_Chest_Press/0.jpg' }, { label: '2. Đẩy ép ngực', url: 'Leverage_Chest_Press/1.jpg' }],
+  EX03: [{ label: '1. Giãn xô trên đỉnh', url: 'Wide-Grip_Lat_Pulldown/0.jpg' }, { label: '2. Kéo xuống ngang cằm', url: 'Wide-Grip_Lat_Pulldown/1.jpg' }],
+  EX04: [{ label: '1. Hạ ngang cằm', url: 'Leverage_Shoulder_Press/0.jpg' }, { label: '2. Đẩy thẳng qua đầu', url: 'Leverage_Shoulder_Press/1.jpg' }],
+  EX05: [{ label: '1. Khóa khuỷu tay sát sườn', url: 'Triceps_Pushdown/0.jpg' }, { label: '2. Duỗi thẳng siết tay sau', url: 'Triceps_Pushdown/1.jpg' }],
+  EX06: [{ label: '1. Cáp / Máy Cuộn cổ tay', url: 'Cable_Wrist_Curl/0.jpg' }, { label: '2. Gập cổ tay kịch trần', url: 'Cable_Wrist_Curl/1.jpg' }],
+  EX07: [{ label: '1. Duỗi chân có kiểm soát', url: 'Seated_Leg_Curl/0.jpg' }, { label: '2. Gập gót siết đùi sau', url: 'Seated_Leg_Curl/1.jpg' }],
+  EX08: [{ label: '1. Hạ sâu mở ngực trên', url: 'Leverage_Incline_Chest_Press/0.jpg' }, { label: '2. Đẩy chéo lên đỉnh', url: 'Leverage_Incline_Chest_Press/1.jpg' }],
+  EX09: [{ label: '1. Giãn bả vai về trước', url: 'Leverage_Iso_Row/0.jpg' }, { label: '2. Kéo ép bả vai & vai sau', url: 'Leverage_Iso_Row/1.jpg' }],
+  EX10: [{ label: '1. Chuẩn bị nâng ngang', url: 'Side_Lateral_Raise/0.jpg' }, { label: '2. Nâng ngang tầm vai', url: 'Side_Lateral_Raise/1.jpg' }],
+  EX11: [
+    { label: 'Hiệp 1 · Hammer Grip (Cầm búa)', url: 'Hammer_Curls/1.jpg' },
+    { label: 'Hiệp 2 · Reverse Grip (Cầm sấp)', url: 'Standing_Dumbbell_Reverse_Curl/1.jpg' },
+    { label: 'Máy cuộn tay Tầng 2 · Duỗi', url: 'Machine_Preacher_Curls/0.jpg' },
+    { label: 'Máy cuộn tay Tầng 2 · Cuộn', url: 'Machine_Preacher_Curls/1.jpg' }
+  ],
+  EX12: [{ label: '1. Cố định hông', url: 'Ab_Crunch_Machine/0.jpg' }, { label: '2. Cuộn đốt sống ngực ép bụng', url: 'Ab_Crunch_Machine/1.jpg' }],
+  EX13: [{ label: '1. Úp sấp lòng bàn tay', url: 'Seated_Dumbbell_Palms-Down_Wrist_Curl/0.jpg' }, { label: '2. Vểnh mu bàn tay lên', url: 'Seated_Dumbbell_Palms-Down_Wrist_Curl/1.jpg' }]
+};
+
 function openDetailSheet(exId) {
   const ex = EXERCISES.find(e => e.id === exId);
   if (!ex) return;
   hapticTap(12);
 
   const stats = getExerciseStats(ex);
+  const photos = EX_PHOTOS[ex.id] || [];
+  const photosHtml = photos.length > 0 ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      ${photos.map(p => `
+        <div style="background:var(--bg-tertiary);border-radius:12px;overflow:hidden;border:1px solid var(--separator);">
+          <img src="${EX_IMG_BASE}${p.url}" alt="${p.label}" loading="lazy" style="width:100%;height:132px;object-fit:cover;display:block;">
+          <div style="padding:6px 8px;font-size:11px;font-weight:600;color:var(--label-primary);text-align:center;">${p.label}</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
   const body = document.getElementById('sheetBody');
   const scrim = document.getElementById('sheetScrim');
   const panel = document.getElementById('sheetPanel');
   if (!body || !scrim || !panel) return;
 
   body.innerHTML = `
-    <div style="margin-bottom:14px;">
+    <div style="margin-bottom:12px;">
       <div class="ex-slot-tag">TẦNG ${ex.floor} · ${ex.muscle.toUpperCase()}</div>
       <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em;line-height:1.2;">${ex.name}</div>
       <div style="font-size:13px;color:var(--label-secondary);margin-top:4px;">${ex.equip}</div>
     </div>
+
+    ${photosHtml}
 
     <div class="ios-list" style="background:var(--bg-tertiary);margin-bottom:14px;">
       <div class="ios-row">
@@ -2382,7 +2417,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=14', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=15', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
