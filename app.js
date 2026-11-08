@@ -88,14 +88,14 @@ const EXERCISES = [
     muscle: 'Đùi trước, Mông',
     equip: 'Máy Đạp đùi / Smith Squat (Tầng 1)',
     sets: 3,
-    repMin: 6,
-    repMax: 10,
+    repMin: 5,
+    repMax: 8,
     rir: '1–2 RIR',
     restSec: 105,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=IZxyjW7MPJQ',
     image: 'https://www.muscleandstrength.com/exercises/45-degree-leg-press.html',
-    cues: 'Lưng & mông áp sát ghế; đạp qua toàn bàn chân; không khóa cứng khớp gối ở đỉnh. Khi mới lên tạ +5kg tập 6 lần, tích lũy đủ 10 lần mới nhảy +5kg tiếp.',
+    cues: 'Nhịp 5–8 lần (2 buổi nhảy +5kg): Buổi 1 mức tạ mới đẩy 5–6 lần → Buổi 2 chạm trần 8 lần → Buổi 3 nhảy +5kg.',
     mistakes: 'Khóa cứng đầu gối; nhấc mông khỏi đệm; đầu gối sụp vào trong.',
     alt: 'Smith Squat / Hack Squat'
   },
@@ -112,14 +112,14 @@ const EXERCISES = [
     equip: 'Máy ngồi đẩy ngực 90 độ (Tầng 2)',
     sets: 2,
     setsA: 3,
-    repMin: 6,
-    repMax: 10,
+    repMin: 5,
+    repMax: 8,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=jrBo8-VSR9M',
     image: 'https://www.muscleandstrength.com/exercises/chest',
-    cues: 'Ép chặt bả vai vào đệm ghế; hạ tạ kiểm soát 2–3 giây; đẩy ra trước thở ra gồng ngực, cùi chỏ mở ~60°. Tích lũy từ 6 lần lên đủ 10 lần mới nhảy chốt +5kg.',
+    cues: 'Nhịp 5–8 lần (2 buổi nhảy +5kg): Buổi 1 đẩy 5–6 lần → Buổi 2 ép đủ 8 lần/hiệp → Buổi 3 nhảy chốt +5kg.',
     mistakes: 'Nhô vai về trước; cùi chỏ mở ngang 90° gây đau vai.',
     alt: 'Smith Flat Press'
   },
@@ -136,14 +136,14 @@ const EXERCISES = [
     equip: 'Cáp kéo xô tại máy Smith (Tầng 1)',
     sets: 2,
     setsA: 3,
-    repMin: 6,
-    repMax: 10,
+    repMin: 5,
+    repMax: 8,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=SALxEARiMkw',
     image: 'https://www.muscleandstrength.com/exercises/lat-pull-down.html',
-    cues: 'Ngực hơi ưỡn hướng lên; kéo khuỷu tay xuống về phía hông siết xô 1 giây; trả tạ chậm có kiểm soát.',
+    cues: 'Nhịp 5–8 lần: Kéo khuỷu tay xuống về phía hông siết xô 1 giây. Chạm trần 8 lần/hiệp là buổi sau lên +5kg.',
     mistakes: 'Ngả người ra sau quá sâu lấy đà; kéo thanh ra sau gáy.',
     alt: 'Assisted Pull-up'
   },
@@ -160,8 +160,8 @@ const EXERCISES = [
     equip: 'Máy đẩy vai ngồi (Tầng 1)',
     sets: 2,
     setsA: 3,
-    repMin: 6,
-    repMax: 10,
+    repMin: 5,
+    repMax: 8,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
@@ -252,14 +252,14 @@ const EXERCISES = [
     muscle: 'Cơ ngực trên (Upper Chest)',
     equip: 'Máy Incline ghế xéo đẩy từng bên (Tầng 2)',
     sets: 3,
-    repMin: 6,
-    repMax: 10,
+    repMin: 5,
+    repMax: 8,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=8iPEnn-ltC8',
     image: 'https://www.muscleandstrength.com/exercises/incline-bench-press.html',
-    cues: 'Bài mở màn Tầng 2 khi 100% thể lực. Ưỡn ngực ép bả vai; hạ tạ sâu có kiểm soát; đẩy lên thở ra gồng ngực trên. Tích lũy từ 6 lần lên đủ 10 lần mới nhảy +5kg.',
+    cues: 'Nhịp 5–8 lần (2 buổi nhảy +5kg): Buổi 1 đẩy 5–6 lần → Buổi 2 ép đủ 8 lần/hiệp → Buổi 3 nhảy +5kg.',
     mistakes: 'Nhấc vai khỏi ghế; đẩy bằng cơ vai trước thay vì ngực trên.',
     alt: 'Incline Dumbbell Press'
   },
@@ -276,8 +276,8 @@ const EXERCISES = [
     equip: 'Máy ngồi Row Machine (Tầng 1)',
     sets: 2,
     setsB: 3,
-    repMin: 6,
-    repMax: 10,
+    repMin: 5,
+    repMax: 8,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
@@ -589,9 +589,9 @@ function getExerciseStats(ex) {
   const lastTotalReps = Number(last.reps) || 0;
   const numSets = ex.setsA || ex.setsB || ex.sets || 3;
 
-  // Double Progression Logic for 5kg Machine / 2.5kg Dumbbell jumps:
+  // Fast 2-Session Double Progression (5 -> 8 reps for 5kg jumps):
   // Estimate average reps per set in the last session
-  const lastAvgReps = lastTotalReps <= 18
+  const lastAvgReps = lastTotalReps <= 15
     ? lastTotalReps
     : Math.round(lastTotalReps / numSets);
 
@@ -599,20 +599,20 @@ function getExerciseStats(ex) {
   let recReps = ex.repMax;
   let recHint = '';
 
-  // Only jump weight (+5kg machine / +2.5kg dumbbell) when hitting top of rep range (repMax) across sets
-  if (lastAvgReps >= ex.repMax && lastTotalReps >= (numSets - 1) * ex.repMax) {
+  // Session 1: 5-6 reps -> Session 2: hit repMax (8 reps) -> Session 3: jump +5kg (or +2.5kg) and start at repMin!
+  if (lastAvgReps >= ex.repMax) {
     recWeight = lastW + ex.inc;
     recReps = ex.repMin;
-    recHint = `Lên +${ex.inc}kg: ${recWeight} kg × ${ex.repMin} lần`;
+    recHint = `Đủ ${ex.repMax} lần → Lên ${recWeight} kg × ${ex.repMin}–6 lần`;
   } else {
     recWeight = lastW;
-    recReps = Math.min(ex.repMax, Math.max(ex.repMin, lastAvgReps + 1));
-    recHint = `Giữ ${lastW} kg · Đẩy lên ${recReps} lần`;
+    recReps = ex.repMax;
+    recHint = `Giữ ${lastW} kg · Đẩy chạm ${ex.repMax} lần`;
   }
 
-  let status = 'Tích lũy Reps';
+  let status = 'Ép lên ' + ex.repMax + ' lần';
   if (recWeight > lastW) {
-    status = `Đủ trần → Lên ${recWeight}kg`;
+    status = `Lên tạ → ${recWeight} kg`;
   } else if (lastW > firstW || Number(last.volume) > Number(first.volume)) {
     status = 'Tăng tải';
   }
@@ -2371,7 +2371,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=11', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=12', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
