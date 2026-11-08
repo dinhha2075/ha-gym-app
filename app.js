@@ -88,14 +88,14 @@ const EXERCISES = [
     muscle: 'Đùi trước, Mông',
     equip: 'Máy Đạp đùi / Smith Squat (Tầng 1)',
     sets: 3,
-    repMin: 8,
+    repMin: 6,
     repMax: 10,
     rir: '1–2 RIR',
     restSec: 105,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=IZxyjW7MPJQ',
     image: 'https://www.muscleandstrength.com/exercises/45-degree-leg-press.html',
-    cues: 'Lưng & mông áp sát ghế; đạp qua toàn bàn chân; không khóa cứng khớp gối ở đỉnh. Thứ 2/6 đặt chân vừa; Thứ 4 đặt chân cao ăn vào Mông & Đùi sau.',
+    cues: 'Lưng & mông áp sát ghế; đạp qua toàn bàn chân; không khóa cứng khớp gối ở đỉnh. Khi mới lên tạ +5kg tập 6 lần, tích lũy đủ 10 lần mới nhảy +5kg tiếp.',
     mistakes: 'Khóa cứng đầu gối; nhấc mông khỏi đệm; đầu gối sụp vào trong.',
     alt: 'Smith Squat / Hack Squat'
   },
@@ -112,14 +112,14 @@ const EXERCISES = [
     equip: 'Máy ngồi đẩy ngực 90 độ (Tầng 2)',
     sets: 2,
     setsA: 3,
-    repMin: 8,
+    repMin: 6,
     repMax: 10,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=jrBo8-VSR9M',
     image: 'https://www.muscleandstrength.com/exercises/chest',
-    cues: 'Ép chặt bả vai vào đệm ghế; hạ tạ kiểm soát 2–3 giây; đẩy ra trước thở ra gồng ngực, cùi chỏ mở ~60°.',
+    cues: 'Ép chặt bả vai vào đệm ghế; hạ tạ kiểm soát 2–3 giây; đẩy ra trước thở ra gồng ngực, cùi chỏ mở ~60°. Tích lũy từ 6 lần lên đủ 10 lần mới nhảy chốt +5kg.',
     mistakes: 'Nhô vai về trước; cùi chỏ mở ngang 90° gây đau vai.',
     alt: 'Smith Flat Press'
   },
@@ -136,7 +136,7 @@ const EXERCISES = [
     equip: 'Cáp kéo xô tại máy Smith (Tầng 1)',
     sets: 2,
     setsA: 3,
-    repMin: 8,
+    repMin: 6,
     repMax: 10,
     rir: '1–2 RIR',
     restSec: 90,
@@ -159,7 +159,8 @@ const EXERCISES = [
     muscle: 'Cơ vai (Deltoids), Tay sau',
     equip: 'Máy đẩy vai ngồi (Tầng 1)',
     sets: 2,
-    repMin: 8,
+    setsA: 3,
+    repMin: 6,
     repMax: 10,
     rir: '1–2 RIR',
     restSec: 90,
@@ -251,14 +252,14 @@ const EXERCISES = [
     muscle: 'Cơ ngực trên (Upper Chest)',
     equip: 'Máy Incline ghế xéo đẩy từng bên (Tầng 2)',
     sets: 3,
-    repMin: 8,
+    repMin: 6,
     repMax: 10,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=8iPEnn-ltC8',
     image: 'https://www.muscleandstrength.com/exercises/incline-bench-press.html',
-    cues: 'Bài mở màn Tầng 2 khi 100% thể lực. Ưỡn ngực ép bả vai; hạ tạ sâu có kiểm soát; đẩy lên thở ra gồng ngực trên.',
+    cues: 'Bài mở màn Tầng 2 khi 100% thể lực. Ưỡn ngực ép bả vai; hạ tạ sâu có kiểm soát; đẩy lên thở ra gồng ngực trên. Tích lũy từ 6 lần lên đủ 10 lần mới nhảy +5kg.',
     mistakes: 'Nhấc vai khỏi ghế; đẩy bằng cơ vai trước thay vì ngực trên.',
     alt: 'Incline Dumbbell Press'
   },
@@ -266,23 +267,23 @@ const EXERCISES = [
     id: 'EX09',
     name: 'Seated Row Machine - Kéo lưng ngồi máy',
     title: 'Seated Row Machine',
-    vnSub: 'Kéo lưng dày · Máy Row Tầng 1',
+    vnSub: 'Kéo lưng dày & Vai sau · Tầng 1',
     floor: 1,
     slot2F: 'T1-7',
     slotA: null,
     slotB: 'B-5',
-    muscle: 'Cơ lưng giữa, Cơ xô',
+    muscle: 'Cơ lưng giữa, Vai sau (Rear Delts)',
     equip: 'Máy ngồi Row Machine (Tầng 1)',
     sets: 2,
     setsB: 3,
-    repMin: 8,
+    repMin: 6,
     repMax: 10,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=3EP5HpKtJG0',
     image: 'https://www.muscleandstrength.com/exercises/middle-back',
-    cues: 'Ngực áp đệm đỡ; kéo khuỷu tay ra sau ép chặt 2 bả vai lại 1 giây; trả về trước có kiểm soát.',
+    cues: '2 hiệp đầu khép khuỷu tay kéo vào bụng ăn Lưng giữa; Hiệp 3 cầm ngang mở khuỷu tay 70° kéo về ngực trên để ăn trọn vào Vai sau (chống gù vai).',
     mistakes: 'Dùng đà giật thân người rời khỏi đệm; nhún vai co cổ.',
     alt: 'Seated Cable Row'
   },
@@ -573,6 +574,8 @@ function getExerciseStats(ex) {
       prWeight: 0,
       lastReps: 0,
       recWeight: defaultStart,
+      recReps: ex.repMin,
+      recHint: `Đề xuất: ${defaultStart} kg × ${ex.repMin}–${ex.repMax} lần`,
       sessions: 0,
       lastDate: '—',
       status: 'Mới'
@@ -581,15 +584,37 @@ function getExerciseStats(ex) {
   const first = matches[0];
   const last = matches[matches.length - 1];
   const prWeight = Math.max(...matches.map(m => Number(m.weight) || 0));
-  const recWeight = Number(last.nextWeight) || (Number(last.weight) + ex.inc);
   const firstW = Number(first.weight) || 0;
   const lastW = Number(last.weight) || 0;
+  const lastTotalReps = Number(last.reps) || 0;
+  const numSets = ex.setsA || ex.setsB || ex.sets || 3;
 
-  let status = 'Giữ tải';
-  if (lastW > firstW || Number(last.volume) > Number(first.volume)) {
+  // Double Progression Logic for 5kg Machine / 2.5kg Dumbbell jumps:
+  // Estimate average reps per set in the last session
+  const lastAvgReps = lastTotalReps <= 18
+    ? lastTotalReps
+    : Math.round(lastTotalReps / numSets);
+
+  let recWeight = lastW;
+  let recReps = ex.repMax;
+  let recHint = '';
+
+  // Only jump weight (+5kg machine / +2.5kg dumbbell) when hitting top of rep range (repMax) across sets
+  if (lastAvgReps >= ex.repMax && lastTotalReps >= (numSets - 1) * ex.repMax) {
+    recWeight = lastW + ex.inc;
+    recReps = ex.repMin;
+    recHint = `Lên +${ex.inc}kg: ${recWeight} kg × ${ex.repMin} lần`;
+  } else {
+    recWeight = lastW;
+    recReps = Math.min(ex.repMax, Math.max(ex.repMin, lastAvgReps + 1));
+    recHint = `Giữ ${lastW} kg · Đẩy lên ${recReps} lần`;
+  }
+
+  let status = 'Tích lũy Reps';
+  if (recWeight > lastW) {
+    status = `Đủ trần → Lên ${recWeight}kg`;
+  } else if (lastW > firstW || Number(last.volume) > Number(first.volume)) {
     status = 'Tăng tải';
-  } else if (matches.length >= 3) {
-    status = 'Chững tạ';
   }
 
   return {
@@ -597,7 +622,10 @@ function getExerciseStats(ex) {
     lastWeight: lastW,
     prWeight,
     lastReps: last.reps,
+    lastAvgReps,
     recWeight,
+    recReps,
+    recHint,
     sessions: matches.length,
     lastDate: last.date,
     status
@@ -614,15 +642,16 @@ function initTodayDefaults() {
   EXERCISES.forEach(ex => {
     const stats = getExerciseStats(ex);
     const numSets = getTargetSetsCount(ex);
+    const defaultRep = stats.recReps || ex.repMax;
     if (!state.todaySession[ex.id]) {
       state.todaySession[ex.id] = {
         weight: stats.recWeight,
-        sets: Array.from({ length: 3 }, () => ({ reps: ex.repMax, done: false })),
+        sets: Array.from({ length: 3 }, () => ({ reps: defaultRep, done: false })),
         rir: ex.rir
       };
     } else {
       while (state.todaySession[ex.id].sets.length < numSets) {
-        state.todaySession[ex.id].sets.push({ reps: ex.repMax, done: false });
+        state.todaySession[ex.id].sets.push({ reps: defaultRep, done: false });
       }
     }
   });
@@ -1490,8 +1519,9 @@ async function saveTodayWorkout() {
     const totalReps = activeSets.reduce((acc, st) => acc + Number(st.reps), 0);
     const w = Number(s.weight) || 0;
     const vol = w * totalReps;
-    const allHitMin = activeSets.length >= numSets && activeSets.every(st => Number(st.reps) >= ex.repMin);
-    const nextW = allHitMin ? w + ex.inc : w;
+    // Double Progression: Only step up weight (+5kg machine / +2.5kg DB) when all sets hit repMax!
+    const allHitMax = activeSets.length >= numSets && activeSets.every(st => Number(st.reps) >= ex.repMax);
+    const nextW = allHitMax ? w + ex.inc : w;
 
     newRows.push({
       date: todayStr,
@@ -1704,7 +1734,7 @@ function renderTodayTab() {
         <div class="weight-bar">
           <div class="weight-hint" onclick="applyRecWeight('${ex.id}', ${stats.recWeight})" style="cursor:pointer;">
             <span class="weight-hint-top tabular">Trước: ${stats.lastWeight > 0 ? `${stats.lastWeight} kg` : '—'}</span>
-            <span class="weight-hint-rec tabular">Đề xuất: ${stats.recWeight} kg</span>
+            <span class="weight-hint-rec tabular">${stats.recHint || `Đề xuất: ${stats.recWeight} kg`}</span>
           </div>
           <div class="weight-stepper">
             <button class="stepper-circle" onclick="stepWeight('${ex.id}', -${ex.inc})" aria-label="Giảm tạ">−</button>
@@ -2341,7 +2371,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=10', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=11', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
