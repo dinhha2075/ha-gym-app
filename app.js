@@ -1091,7 +1091,12 @@ const EX_PHOTOS = {
   EX06: [{ label: '1. Cáp / Máy Cuộn cổ tay', url: 'Cable_Wrist_Curl/0.jpg' }, { label: '2. Gập cổ tay kịch trần', url: 'Cable_Wrist_Curl/1.jpg' }],
   EX07: [{ label: '1. Duỗi chân có kiểm soát', url: 'Seated_Leg_Curl/0.jpg' }, { label: '2. Gập gót siết đùi sau', url: 'Seated_Leg_Curl/1.jpg' }],
   EX08: [{ label: '1. Hạ sâu mở ngực trên', url: 'Leverage_Incline_Chest_Press/0.jpg' }, { label: '2. Đẩy chéo lên đỉnh', url: 'Leverage_Incline_Chest_Press/1.jpg' }],
-  EX09: [{ label: '1. Giãn bả vai về trước', url: 'Leverage_Iso_Row/0.jpg' }, { label: '2. Kéo ép bả vai & vai sau', url: 'Leverage_Iso_Row/1.jpg' }],
+  EX09: [
+    { label: 'Hiệp 1 · Cầm dọc (Duỗi bả vai)', url: 'Leverage_Iso_Row/0.jpg' },
+    { label: 'Hiệp 1 · Kéo sát sườn (Lưng giữa)', url: 'Leverage_Iso_Row/1.jpg' },
+    { label: 'Hiệp 2 · Cầm ngang mở 70° (Duỗi)', url: 'Cable_Rope_Rear-Delt_Rows/0.jpg' },
+    { label: 'Hiệp 2 · Mở cùi chỏ 70° (Vai sau)', url: 'Cable_Rope_Rear-Delt_Rows/1.jpg' }
+  ],
   EX10: [{ label: '1. Chuẩn bị nâng ngang', url: 'Side_Lateral_Raise/0.jpg' }, { label: '2. Nâng ngang tầm vai', url: 'Side_Lateral_Raise/1.jpg' }],
   EX11: [
     { label: 'Hiệp 1 · Hammer Grip (Cầm búa)', url: 'Hammer_Curls/1.jpg' },
@@ -2417,7 +2422,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=15', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=16', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
