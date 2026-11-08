@@ -1,9 +1,9 @@
-const CACHE_NAME = 'ha-gym-apple-v13';
+const CACHE_NAME = 'ha-gym-apple-v14';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=13',
-  './app.js?v=13',
+  './styles.css?v=14',
+  './app.js?v=14',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',

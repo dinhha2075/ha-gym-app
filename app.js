@@ -80,8 +80,9 @@ const EXERCISES = [
     id: 'EX01',
     name: 'Leg Press - Đạp đùi',
     title: 'Leg Press',
-    vnSub: 'Đạp đùi · Máy Tầng 1',
+    vnSub: 'Đạp đùi · Máy Tầng 1 (+5kg)',
     floor: 1,
+    slotE7: 'T1-4',
     slot2F: 'T1-5',
     slotA: 'A-3',
     slotB: null,
@@ -103,7 +104,7 @@ const EXERCISES = [
     id: 'EX02',
     name: 'Seated Machine Chest Press - Ngồi thẳng đẩy ngực máy',
     title: 'Seated Chest Press',
-    vnSub: 'Ngực giữa · Máy 90° Tầng 2',
+    vnSub: 'Ngực giữa · Máy 90° Tầng 2 (+5kg)',
     floor: 2,
     slot2F: 'T2-4',
     slotA: 'A-1',
@@ -127,8 +128,9 @@ const EXERCISES = [
     id: 'EX03',
     name: 'Lat Pulldown - Kéo xô máy',
     title: 'Lat Pulldown',
-    vnSub: 'Kéo xô chữ V · Cáp Smith Tầng 1',
+    vnSub: 'Kéo xô chữ V · Cáp Smith Tầng 1 (+5kg)',
     floor: 1,
+    slotE7: 'T1-5',
     slot2F: 'T1-6',
     slotA: 'A-4',
     slotB: null,
@@ -143,7 +145,7 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=SALxEARiMkw',
     image: 'https://www.muscleandstrength.com/exercises/lat-pull-down.html',
-    cues: 'Tiến trình Hypertrophy 8–12 lần: Kéo khuỷu tay xuống về phía hông siết xô 1 giây. Chạm trần 12 lần/hiệp là buổi sau lên +5kg × 8 lần.',
+    cues: '2 hiệp chuẩn (8 → 10 → 12 lần): Đạt đủ 12/12 lần cả 2 hiệp thì buổi sau cắm chốt +5kg và bắt đầu lại ở 8/8 lần.',
     mistakes: 'Ngả người ra sau quá sâu lấy đà; kéo thanh ra sau gáy.',
     alt: 'Assisted Pull-up'
   },
@@ -151,8 +153,9 @@ const EXERCISES = [
     id: 'EX04',
     name: 'Machine Shoulder Press - Đẩy vai máy',
     title: 'Machine Shoulder Press',
-    vnSub: 'Đẩy vai · Máy ngồi Tầng 1',
+    vnSub: 'Đẩy vai · Máy ngồi Tầng 1 (+5kg)',
     floor: 1,
+    slotE7: 'T1-7A',
     slot2F: 'T1-8',
     slotA: 'A-5',
     slotB: null,
@@ -167,7 +170,7 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=Lo6dnolXt3E',
     image: 'https://www.muscleandstrength.com/exercises/shoulders',
-    cues: 'Lưng áp sát ghế, siết bụng; đẩy tay cầm lên đỉnh có kiểm soát; hạ xuống ngang cằm.',
+    cues: '2 hiệp chuẩn (8 → 10 → 12 lần): Đạt đủ 12/12 lần cả 2 hiệp thì buổi sau tăng +5kg × 8/8 lần.',
     mistakes: 'Ưỡn võng thắt lưng quá mức; thả rơi tạ tự do.',
     alt: 'Dumbbell Shoulder Press'
   },
@@ -181,16 +184,16 @@ const EXERCISES = [
     slotA: 'A-6',
     slotB: null,
     muscle: 'Cơ tay sau (Triceps)',
-    equip: 'Cáp kéo tay sau tại máy Smith (Tầng 1)',
+    equip: 'Cáp kéo tay sau tại máy Smith Tầng 1 (+5kg/nấc)',
     sets: 2,
     repMin: 10,
-    repMax: 12,
+    repMax: 15,
     rir: '1–2 RIR',
     restSec: 60,
-    inc: 2.5,
+    inc: 5,
     video: 'https://www.youtube.com/watch?v=2-LAMcpzODU',
     image: 'https://www.muscleandstrength.com/exercises/triceps',
-    cues: 'Khóa cố định khuỷu tay sát sườn; duỗi thẳng tay xuống dưới siết chặt tay sau 1 giây; trả chậm.',
+    cues: 'Chốt cáp nhảy +5kg/nấc: Tích lũy 2 hiệp theo mốc 10 → 12 → 15 lần. Đạt đủ 15/15 lần mới tăng +5kg và quay lại 10 lần.',
     mistakes: 'Vung vẩy khuỷu tay; dùng sức nặng cơ thể đè lên cáp.',
     alt: 'Overhead Cable Extension'
   },
@@ -198,24 +201,25 @@ const EXERCISES = [
     id: 'EX06',
     name: 'Wrist Curl - Cuộn cổ tay',
     title: 'Wrist Curl (Finger-Roll)',
-    vnSub: 'Cuộn cổ tay & Xách tạ · Tầng 1',
+    vnSub: 'Cuộn cổ tay · Cáp/Máy Tầng 1 (+5kg)',
     floor: 1,
+    slotE7: 'T1-7B',
     slot2F: 'T1-9C',
     slotA: 'A-7',
     slotB: null,
     muscle: 'Cơ gập cổ tay, Sức nắm (Grip)',
-    equip: 'Tạ đơn / Cáp Smith + 45s Farmer Hold',
+    equip: 'Cáp Smith / Máy Tầng 1 (+5kg/nấc) + 45s Farmer Hold',
     sets: 2,
-    repMin: 15,
-    repMax: 20,
+    repMin: 10,
+    repMax: 15,
     rir: '0–1 RIR',
     restSec: 45,
-    inc: 2.5,
+    inc: 5,
     video: 'https://www.youtube.com/watch?v=1-55N7Qlu_U',
     image: 'https://www.muscleandstrength.com/exercises/barbell-wrist-curl.html',
-    cues: 'Kỹ thuật Finger-Roll: Hạ xuống mở lỏng bàn tay cho tạ lăn ra đầu ngón tay → bóp chặt nắm đấm cuộn cổ tay lên kịch trần giữ 1s. Xong 2 hiệp xách tạ nặng 45s để nổi gân.',
+    cues: 'Tập Cáp/Máy nhảy +5kg/nấc: Tích lũy 2 hiệp từ 10 → 12 → 15 lần (đạt 15/15 lần mới lên +5kg). Nếu cầm Tạ đơn từng tay thì nhảy +2.5kg ở mốc 15 lần. Cuối buổi xách tạ 45s.',
     mistakes: 'Nhấc cả cẳng tay khỏi đùi; giật cổ tay theo quán tính.',
-    alt: 'Cable Wrist Curl'
+    alt: 'Dumbbell Finger-Roll (+2.5kg)'
   },
   {
     id: 'EX07',
@@ -244,8 +248,9 @@ const EXERCISES = [
     id: 'EX08',
     name: 'Incline Chest Press - Ghế nghiêng đẩy ngực trên máy',
     title: 'Incline Chest Press',
-    vnSub: 'Ngực trên · Máy ghế xéo Tầng 2',
+    vnSub: 'Ngực trên · Máy ghế xéo Tầng 2 (+5kg)',
     floor: 2,
+    slotE7: 'T2-1',
     slot2F: 'T2-1',
     slotA: null,
     slotB: 'B-1',
@@ -261,14 +266,15 @@ const EXERCISES = [
     image: 'https://www.muscleandstrength.com/exercises/incline-bench-press.html',
     cues: 'Tiến trình Hypertrophy 8–12 lần (24–36 cái/buổi): Đạt đủ 12 lần/hiệp thì buổi sau nhảy +5kg và bắt đầu lại ở đúng 8 lần.',
     mistakes: 'Nhấc vai khỏi ghế; đẩy bằng cơ vai trước thay vì ngực trên.',
-    alt: 'Incline Dumbbell Press'
+    alt: 'Seated Chest Press 90°'
   },
   {
     id: 'EX09',
     name: 'Seated Row Machine - Kéo lưng ngồi máy',
     title: 'Seated Row Machine',
-    vnSub: 'Kéo lưng dày & Vai sau · Tầng 1',
+    vnSub: 'Kéo lưng dày & Vai sau · Tầng 1 (+5kg)',
     floor: 1,
+    slotE7: 'T1-6',
     slot2F: 'T1-7',
     slotA: null,
     slotB: 'B-5',
@@ -283,7 +289,7 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=3EP5HpKtJG0',
     image: 'https://www.muscleandstrength.com/exercises/middle-back',
-    cues: '2 hiệp đầu khép khuỷu tay kéo vào bụng ăn Lưng giữa; Hiệp 3 cầm ngang mở khuỷu tay 70° kéo về ngực trên để ăn trọn vào Vai sau (chống gù vai).',
+    cues: 'Hiệp 1 khép khuỷu tay kéo vào bụng ăn Lưng giữa; Hiệp 2 cầm ngang mở khuỷu tay 70° kéo về ngực trên ăn Vai sau (chống gù vai). Đủ 12/12 lần lên +5kg.',
     mistakes: 'Dùng đà giật thân người rời khỏi đệm; nhún vai co cổ.',
     alt: 'Seated Cable Row'
   },
@@ -315,36 +321,38 @@ const EXERCISES = [
     id: 'EX11',
     name: 'Hammer Curl - Cuộn tay trước búa',
     title: 'Hammer & Reverse Curl',
-    vnSub: 'Bắp tay & Cẳng tay · Máy Tầng 2',
+    vnSub: 'Tay trước & Cẳng tay · Máy Tầng 2 (+5kg)',
     floor: 2,
+    slotE7: 'T2-2',
     slot2F: 'T2-2',
     slotA: null,
     slotB: 'B-2',
     muscle: 'Brachioradialis (Cẳng tay), Biceps',
-    equip: 'Máy cuộn bắp tay (Tầng 2) / Tạ đơn',
+    equip: 'Máy cuộn bắp tay Tầng 2 (+5kg/nấc) / Tạ đơn',
     sets: 2,
     repMin: 10,
-    repMax: 12,
+    repMax: 15,
     rir: '0–1 RIR',
     restSec: 60,
-    inc: 2.5,
+    inc: 5,
     video: 'https://www.youtube.com/watch?v=HfSzuZPVlnA',
     image: 'https://www.muscleandstrength.com/exercises/biceps',
-    cues: 'Trạm nghỉ 3 phút cho cơ Ngực ở Tầng 2. Hiệp 1 nắm kiểu Búa (Hammer), Hiệp 2 nắm Sấp tay (Reverse Curl) để bơm cơ cánh tay quay to vạm vỡ.',
+    cues: 'Tập Máy Tầng 2 nhảy +5kg/nấc: Tích lũy 2 hiệp từ 10 → 12 → 15 lần (đạt 15/15 lần mới nhảy +5kg về 10 lần). Hiệp 1 nắm Búa (Hammer), Hiệp 2 nắm Sấp tay (Reverse). Nếu dùng Tạ đơn thì nhảy +2.5kg.',
     mistakes: 'Đung đưa khuỷu tay lấy đà; thả tạ rơi mất sức căng.',
-    alt: 'Dumbbell Hammer Curl'
+    alt: 'Dumbbell Hammer Curl (+2.5kg)'
   },
   {
     id: 'EX12',
     name: 'Ab Crunch Machine - Gập bụng với máy',
     title: 'Ab Crunch Machine',
-    vnSub: 'Gập bụng · Máy Tầng 2',
+    vnSub: 'Gập bụng · Máy Tầng 2 (+5kg)',
     floor: 2,
+    slotE7: 'T2-3',
     slot2F: 'T2-3',
     slotA: 'A-2',
     slotB: 'B-3',
     muscle: 'Cơ bụng (Rectus Abdominis)',
-    equip: 'Máy gập bụng (Tầng 2)',
+    equip: 'Máy gập bụng Tầng 2 (+5kg/nấc)',
     sets: 2,
     repMin: 12,
     repMax: 15,
@@ -353,7 +361,7 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=_O1xunCfYEM',
     image: 'https://www.muscleandstrength.com/exercises/ab-crunch-machine.html',
-    cues: 'Cố định hông, thở hết hơi ra khi cuộn tròn đốt sống ngực ép xuống, siết cứng cơ bụng 1 giây.',
+    cues: '2 hiệp × 12–15 lần: Cố định hông, thở hết hơi ra khi cuộn tròn đốt sống ngực ép xuống, đạt 15/15 lần thì tăng +5kg.',
     mistakes: 'Dùng lực tay kéo máy hoặc gập hông mà không cuộn cột sống.',
     alt: 'Cable Kneeling Crunch'
   },
@@ -436,12 +444,12 @@ const DEFAULT_EX_TARGETS_3M = {
   EX03: 65,    // Lat Pulldown: 40kg -> 65kg
   EX04: 75,    // Machine Shoulder Press: 60kg -> 75kg
   EX05: 35,    // Triceps Pushdown: 20kg -> 35kg
-  EX06: 42.5,  // Wrist Curl: 30kg -> 42.5kg
+  EX06: 45,    // Wrist Curl (Máy +5kg): 30kg -> 45kg
   EX07: 55,    // Seated Leg Curl: 35kg -> 55kg
   EX08: 80,    // Incline Chest Press: 60kg -> 80kg
   EX09: 80,    // Seated Row Machine: 60kg -> 80kg
   EX10: 12.5,  // Lateral Raise: 5kg -> 12.5kg
-  EX11: 25,    // Hammer & Reverse Curl: 15kg -> 25kg
+  EX11: 25,    // Hammer & Reverse Curl (Máy +5kg): 15kg -> 25kg
   EX12: 70,    // Ab Crunch Machine: 50kg -> 70kg
   EX13: 20     // Reverse Wrist Curl: 10kg -> 20kg
 };
@@ -460,7 +468,7 @@ const DEFAULT_BODY_TARGETS_3M = {
 
 let state = {
   activeTab: 'today',
-  workoutMode: 'WORKOUT_A', // 'WORKOUT_A' | 'WORKOUT_B' | '2FLOOR'
+  workoutMode: 'ESSENTIAL_7', // 'ESSENTIAL_7' | 'WORKOUT_A' | 'WORKOUT_B'
   userManuallySelectedMode: false,
   warmupDone: false,
   todaySession: {},
@@ -475,7 +483,7 @@ let state = {
   libFilter: 'ALL'
 };
 
-// Analyze last completed workout session from logs & recommend next session (A <-> B)
+// Analyze last completed workout session from logs & recommend Unified Essential 7 routine
 function getLastSessionInfo() {
   if (!state.logs || state.logs.length === 0) {
     return {
@@ -484,8 +492,8 @@ function getLastSessionInfo() {
       lastCode: 'NONE',
       exCount: 0,
       totalVol: 0,
-      nextMode: 'WORKOUT_A',
-      nextLabel: 'Buổi A (Tầng 2 → Tầng 1)'
+      nextMode: 'ESSENTIAL_7',
+      nextLabel: '7 Bài Chuẩn · 18 Hiệp (Tầng 2 → Tầng 1)'
     };
   }
   const lastEntry = state.logs[state.logs.length - 1];
@@ -493,25 +501,23 @@ function getLastSessionInfo() {
   const sameDayLogs = state.logs.filter(l => l.date === lastDate);
   const totalVol = sameDayLogs.reduce((acc, l) => acc + (Number(l.volume) || 0), 0);
 
-  // Count how many A vs B workouts/exercises were done in the last session
   let countA = 0;
   let countB = 0;
-  let isFull2F = false;
+  let isEssential7 = false;
   sameDayLogs.forEach(l => {
     const wStr = String(l.workout || '').toUpperCase();
-    if (wStr.includes('2 TẦNG') || wStr.includes('FULL')) isFull2F = true;
+    if (wStr.includes('7 BÀI') || wStr.includes('2 TẦNG') || wStr.includes('FULL')) isEssential7 = true;
     else if (wStr.includes('B')) countB++;
     else if (wStr.includes('A')) countA++;
   });
 
-  // Also check last entry's explicit workout tag
   const lastWTag = String(lastEntry.workout || '').toUpperCase();
-  let lastCode = 'WORKOUT_A';
-  let lastLabel = 'Buổi A';
+  let lastCode = 'ESSENTIAL_7';
+  let lastLabel = '7 Bài Chuẩn';
 
-  if (isFull2F && sameDayLogs.length >= 8) {
-    lastCode = '2FLOOR';
-    lastLabel = 'Gộp A+B (2 Tầng)';
+  if (isEssential7) {
+    lastCode = 'ESSENTIAL_7';
+    lastLabel = '7 Bài Chuẩn';
   } else if (lastWTag.includes('B') || countB > countA) {
     lastCode = 'WORKOUT_B';
     lastLabel = 'Buổi B';
@@ -520,17 +526,14 @@ function getLastSessionInfo() {
     lastLabel = 'Buổi A';
   }
 
-  const nextMode = lastCode === 'WORKOUT_A' ? 'WORKOUT_B' : 'WORKOUT_A';
-  const nextLabel = nextMode === 'WORKOUT_A' ? 'Buổi A (Tầng 2 → Tầng 1)' : 'Buổi B (Tầng 2 → Tầng 1)';
-
   return {
     lastDate,
     lastLabel,
     lastCode,
     exCount: sameDayLogs.length,
     totalVol,
-    nextMode,
-    nextLabel
+    nextMode: 'ESSENTIAL_7',
+    nextLabel: '7 Bài Chuẩn · 18 Hiệp (Tầng 2 → Tầng 1)'
   };
 }
 
@@ -551,9 +554,10 @@ function loadState() {
       };
     }
   } catch (e) {}
-  // Auto-select next workout (A or B) based on the last completed session
-  const info = getLastSessionInfo();
-  state.workoutMode = info.nextMode;
+  // Default to the unified Essential 7 routine so all 7 core lifts progress every week
+  if (!state.userManuallySelectedMode || state.workoutMode === '2FLOOR') {
+    state.workoutMode = 'ESSENTIAL_7';
+  }
   initTodayDefaults();
   getTodayActivity();
 }
@@ -587,25 +591,36 @@ function getExerciseStats(ex) {
   const firstW = Number(first.weight) || 0;
   const lastW = Number(last.weight) || 0;
   const lastTotalReps = Number(last.reps) || 0;
-  const numSets = ex.setsA || ex.setsB || ex.sets || 3;
 
-  // Double Progression (8 -> 12 reps for Upper Body 5kg jumps; 8 -> 10 reps for Leg Press):
-  const lastAvgReps = lastTotalReps <= 18
-    ? lastTotalReps
-    : Math.round(lastTotalReps / numSets);
+  // Determine average reps per set accurately (supports both 2-set and 3-set logs)
+  let lastAvgReps = ex.repMin;
+  const noteStr = String(last.note || '');
+  if (noteStr.includes('Hiệp:')) {
+    const parts = noteStr.replace('Hiệp:', '').trim().split('/').map(n => parseInt(n, 10)).filter(n => !isNaN(n) && n > 0);
+    if (parts.length > 0) {
+      lastAvgReps = Math.round(parts.reduce((a, b) => a + b, 0) / parts.length);
+    }
+  } else if (lastTotalReps <= 15) {
+    lastAvgReps = lastTotalReps;
+  } else {
+    // Historical sheet logs had 3 sets for compound lifts (24 reps = 3x8) and 2 sets for isolation (20 or 30 reps)
+    const histSets = (ex.setsA || ex.setsB || ex.sets || 3);
+    lastAvgReps = Math.round(lastTotalReps / histSets);
+  }
 
   let recWeight = lastW;
   let recReps = ex.repMax;
   let recHint = '';
 
-  // When hitting repMax (12 reps on upper body / 10 reps on Leg Press), step up +5kg and start cleanly at 8 reps (repMin)!
+  // Double Progression: Step up weight (+5kg machine / +2.5kg DB) when hitting repMax!
   if (lastAvgReps >= ex.repMax) {
     recWeight = lastW + ex.inc;
     recReps = ex.repMin;
     recHint = `Đủ ${ex.repMax} lần → Lên ${recWeight} kg × ${ex.repMin} lần`;
   } else {
     recWeight = lastW;
-    recReps = Math.min(ex.repMax, Math.max(ex.repMin, lastAvgReps + 2));
+    const stepRep = (ex.repMax - ex.repMin >= 5 && lastAvgReps >= 12) ? 3 : 2;
+    recReps = Math.min(ex.repMax, Math.max(ex.repMin, lastAvgReps + stepRep));
     recHint = `Giữ ${lastW} kg · Đẩy lên ${recReps} lần`;
   }
 
@@ -657,26 +672,26 @@ function initTodayDefaults() {
 }
 
 function getTodayExercises() {
-  // Both WORKOUT_A and WORKOUT_B are ordered strictly Tầng 2 -> Tầng 1 (1-way pass)
+  // Default: Tinh Nhuệ 7 Bài Chuẩn (18 hiệp · Tầng 2 -> Tầng 1 · 100% Máy +5kg)
+  if (state.workoutMode === 'ESSENTIAL_7') {
+    // Chặng 1 Tầng 2: EX08 Ngực trên (3h), EX11 Hammer/Reverse Curl (2h), EX12 Gập bụng (2h) = 7 hiệp
+    // Chặng 2 Tầng 1: EX01 Đạp đùi (3h), EX03 Kéo xô (2h), EX09 Kéo lưng/Vai sau (2h), EX04 Đẩy vai (2h) + EX06 Cuộn cổ tay (2h) = 11 hiệp
+    const order = ['EX08', 'EX11', 'EX12', 'EX01', 'EX03', 'EX09', 'EX04', 'EX06'];
+    return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
+  }
   if (state.workoutMode === 'WORKOUT_A') {
-    // Tầng 2 (A-1 Ngực ngang 90°, A-2 Gập bụng) -> Tầng 1 (A-3 Đạp đùi, A-4 Kéo xô, A-5 Đẩy vai, A-6 Tay sau, A-7 Cổ tay)
     const order = ['EX02', 'EX12', 'EX01', 'EX03', 'EX04', 'EX05', 'EX06'];
     return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   }
   if (state.workoutMode === 'WORKOUT_B') {
-    // Tầng 2 (B-1 Ngực trên xéo, B-2 Hammer/Reverse Curl, B-3 Gập bụng) -> Tầng 1 (B-4 Đùi sau, B-5 Kéo lưng Row, B-6 Vai ngang, B-7 Cổ tay ngược)
     const order = ['EX08', 'EX11', 'EX12', 'EX07', 'EX09', 'EX10', 'EX13'];
-    return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
-  }
-  if (state.workoutMode === '2FLOOR') {
-    const order = ['EX08', 'EX11', 'EX12', 'EX02', 'EX01', 'EX03', 'EX09', 'EX04', 'EX10', 'EX05', 'EX06', 'EX13'];
     return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   }
   return EXERCISES;
 }
 
 function getSlotLabel(ex) {
-  if (state.workoutMode === '2FLOOR') return ex.slot2F || 'Tùy chọn';
+  if (state.workoutMode === 'ESSENTIAL_7') return ex.slotE7 || ex.slot2F || ex.id;
   if (state.workoutMode === 'WORKOUT_A') return ex.slotA || 'Tùy chọn';
   if (state.workoutMode === 'WORKOUT_B') return ex.slotB || 'Tùy chọn';
   return ex.id;
@@ -1420,9 +1435,9 @@ async function syncFromGoogleSheet(silent = false) {
 let segPillPos = 0;
 
 function getModeIndex(mode) {
-  if (mode === 'WORKOUT_A') return 0;
-  if (mode === 'WORKOUT_B') return 1;
-  return 2; // '2FLOOR'
+  if (mode === 'ESSENTIAL_7') return 0;
+  if (mode === 'WORKOUT_A') return 1;
+  return 2; // 'WORKOUT_B'
 }
 
 function setWorkoutMode(mode) {
@@ -1525,7 +1540,7 @@ async function saveTodayWorkout() {
     newRows.push({
       date: todayStr,
       week: Math.max(6, Math.ceil((state.logs.length + 1) / 6)),
-      workout: state.workoutMode === '2FLOOR' ? 'Full-Body 2 Tầng' : state.workoutMode === 'WORKOUT_A' ? 'Workout A' : 'Workout B',
+      workout: state.workoutMode === 'ESSENTIAL_7' ? '7 Bài Chuẩn (18 Hiệp)' : state.workoutMode === 'WORKOUT_A' ? 'Workout A' : 'Workout B',
       exercise: ex.name,
       weight: w,
       reps: totalReps,
@@ -1551,9 +1566,6 @@ async function saveTodayWorkout() {
       state.todaySession[ex.id].sets.forEach(st => { st.done = false; });
     }
   });
-  // Advance to the next alternating workout for next session
-  state.workoutMode = getLastSessionInfo().nextMode;
-  state.userManuallySelectedMode = false;
   initTodayDefaults();
   saveState();
   render();
@@ -1680,8 +1692,8 @@ function renderTodayTab() {
         ? 'Chặng 1 · Tầng 2 (Khởi động & Tập máy Tầng 2 trước)'
         : 'Chặng 2 · Đi xuống Tầng 1 (Tập xong về luôn)';
       const floorMeta = currentFloor === 2
-        ? (state.workoutMode === 'WORKOUT_A' ? '2 bài · ~12 phút' : state.workoutMode === 'WORKOUT_B' ? '3 bài · ~16 phút' : '4 bài · ~18 phút')
-        : (state.workoutMode === 'WORKOUT_A' ? '5 bài · ~30 phút' : state.workoutMode === 'WORKOUT_B' ? '4 bài · ~26 phút' : '8 bài · ~32 phút');
+        ? (state.workoutMode === 'ESSENTIAL_7' ? '3 trạm · 7 hiệp · ~14p' : state.workoutMode === 'WORKOUT_A' ? '2 bài · ~12 phút' : '3 bài · ~16 phút')
+        : (state.workoutMode === 'ESSENTIAL_7' ? '4 trạm + Cổ tay · 11 hiệp · ~22p' : state.workoutMode === 'WORKOUT_A' ? '5 bài · ~30 phút' : '4 bài · ~26 phút');
       listHtml += `
         <div class="section-header">
           <span class="section-title">${floorTitle}</span>
@@ -1760,17 +1772,17 @@ function renderTodayTab() {
 
   return `
     <!-- 1-Line Subtle Session Context -->
-    <div class="session-caption tabular" onclick="setWorkoutMode('${lastSession.nextMode}')" style="cursor:pointer;">
+    <div class="session-caption tabular" onclick="setWorkoutMode('ESSENTIAL_7')" style="cursor:pointer;">
       <span>Trước: ${lastSession.lastLabel} (${lastSession.lastDate})</span>
-      <span>Hôm nay: <strong>${lastSession.nextLabel.split(' (')[0]}</strong> ${isOnRecommendedMode ? '✓' : '→'}</span>
+      <span>Chế độ: <strong>7 Bài Chuẩn · 18 Hiệp (+5kg/tuần)</strong> ${state.workoutMode === 'ESSENTIAL_7' ? '✓' : '→'}</span>
     </div>
 
-    <!-- Sliding Segmented Control (Buổi A | Buổi B | Gộp A+B) -->
+    <!-- Sliding Segmented Control (7 Bài Chuẩn | Buổi A | Buổi B) -->
     <div class="segmented-control">
       <div id="segPill" class="segmented-pill" style="transform:translateX(${modeIdx * 100}%);"></div>
+      <button class="seg-btn ${state.workoutMode === 'ESSENTIAL_7' ? 'active' : ''}" onclick="setWorkoutMode('ESSENTIAL_7')">7 Bài Chuẩn</button>
       <button class="seg-btn ${state.workoutMode === 'WORKOUT_A' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_A')">Buổi A</button>
       <button class="seg-btn ${state.workoutMode === 'WORKOUT_B' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_B')">Buổi B</button>
-      <button class="seg-btn ${state.workoutMode === '2FLOOR' ? 'active' : ''}" onclick="setWorkoutMode('2FLOOR')">Gộp A+B</button>
     </div>
 
     <!-- Unified Apple Fitness Activity Card (Rings + Workout/Daily Calo + Steps in ONE card) -->
@@ -2370,7 +2382,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=13', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=14', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
