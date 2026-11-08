@@ -88,14 +88,14 @@ const EXERCISES = [
     muscle: 'Đùi trước, Mông',
     equip: 'Máy Đạp đùi / Smith Squat (Tầng 1)',
     sets: 3,
-    repMin: 5,
-    repMax: 8,
+    repMin: 8,
+    repMax: 10,
     rir: '1–2 RIR',
     restSec: 105,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=IZxyjW7MPJQ',
     image: 'https://www.muscleandstrength.com/exercises/45-degree-leg-press.html',
-    cues: 'Nhịp 5–8 lần (2 buổi nhảy +5kg): Buổi 1 mức tạ mới đẩy 5–6 lần → Buổi 2 chạm trần 8 lần → Buổi 3 nhảy +5kg.',
+    cues: 'Ở mức tạ 160kg+, bước nhảy +5kg chỉ bằng 3% tải nên chỉ cần tích lũy từ 8 lên 10 lần (24–30 cái/buổi) là đủ nhảy +5kg.',
     mistakes: 'Khóa cứng đầu gối; nhấc mông khỏi đệm; đầu gối sụp vào trong.',
     alt: 'Smith Squat / Hack Squat'
   },
@@ -112,14 +112,14 @@ const EXERCISES = [
     equip: 'Máy ngồi đẩy ngực 90 độ (Tầng 2)',
     sets: 2,
     setsA: 3,
-    repMin: 5,
-    repMax: 8,
+    repMin: 8,
+    repMax: 12,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=jrBo8-VSR9M',
     image: 'https://www.muscleandstrength.com/exercises/chest',
-    cues: 'Nhịp 5–8 lần (2 buổi nhảy +5kg): Buổi 1 đẩy 5–6 lần → Buổi 2 ép đủ 8 lần/hiệp → Buổi 3 nhảy chốt +5kg.',
+    cues: 'Tiến trình Hypertrophy 8–12 lần (24–36 cái/buổi): Đạt đủ 12 lần/hiệp thì buổi sau nhảy +5kg và bắt đầu lại ở đúng 8 lần.',
     mistakes: 'Nhô vai về trước; cùi chỏ mở ngang 90° gây đau vai.',
     alt: 'Smith Flat Press'
   },
@@ -136,14 +136,14 @@ const EXERCISES = [
     equip: 'Cáp kéo xô tại máy Smith (Tầng 1)',
     sets: 2,
     setsA: 3,
-    repMin: 5,
-    repMax: 8,
+    repMin: 8,
+    repMax: 12,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=SALxEARiMkw',
     image: 'https://www.muscleandstrength.com/exercises/lat-pull-down.html',
-    cues: 'Nhịp 5–8 lần: Kéo khuỷu tay xuống về phía hông siết xô 1 giây. Chạm trần 8 lần/hiệp là buổi sau lên +5kg.',
+    cues: 'Tiến trình Hypertrophy 8–12 lần: Kéo khuỷu tay xuống về phía hông siết xô 1 giây. Chạm trần 12 lần/hiệp là buổi sau lên +5kg × 8 lần.',
     mistakes: 'Ngả người ra sau quá sâu lấy đà; kéo thanh ra sau gáy.',
     alt: 'Assisted Pull-up'
   },
@@ -160,8 +160,8 @@ const EXERCISES = [
     equip: 'Máy đẩy vai ngồi (Tầng 1)',
     sets: 2,
     setsA: 3,
-    repMin: 5,
-    repMax: 8,
+    repMin: 8,
+    repMax: 12,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
@@ -252,14 +252,14 @@ const EXERCISES = [
     muscle: 'Cơ ngực trên (Upper Chest)',
     equip: 'Máy Incline ghế xéo đẩy từng bên (Tầng 2)',
     sets: 3,
-    repMin: 5,
-    repMax: 8,
+    repMin: 8,
+    repMax: 12,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=8iPEnn-ltC8',
     image: 'https://www.muscleandstrength.com/exercises/incline-bench-press.html',
-    cues: 'Nhịp 5–8 lần (2 buổi nhảy +5kg): Buổi 1 đẩy 5–6 lần → Buổi 2 ép đủ 8 lần/hiệp → Buổi 3 nhảy +5kg.',
+    cues: 'Tiến trình Hypertrophy 8–12 lần (24–36 cái/buổi): Đạt đủ 12 lần/hiệp thì buổi sau nhảy +5kg và bắt đầu lại ở đúng 8 lần.',
     mistakes: 'Nhấc vai khỏi ghế; đẩy bằng cơ vai trước thay vì ngực trên.',
     alt: 'Incline Dumbbell Press'
   },
@@ -276,8 +276,8 @@ const EXERCISES = [
     equip: 'Máy ngồi Row Machine (Tầng 1)',
     sets: 2,
     setsB: 3,
-    repMin: 5,
-    repMax: 8,
+    repMin: 8,
+    repMax: 12,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
@@ -589,9 +589,8 @@ function getExerciseStats(ex) {
   const lastTotalReps = Number(last.reps) || 0;
   const numSets = ex.setsA || ex.setsB || ex.sets || 3;
 
-  // Fast 2-Session Double Progression (5 -> 8 reps for 5kg jumps):
-  // Estimate average reps per set in the last session
-  const lastAvgReps = lastTotalReps <= 15
+  // Double Progression (8 -> 12 reps for Upper Body 5kg jumps; 8 -> 10 reps for Leg Press):
+  const lastAvgReps = lastTotalReps <= 18
     ? lastTotalReps
     : Math.round(lastTotalReps / numSets);
 
@@ -599,15 +598,15 @@ function getExerciseStats(ex) {
   let recReps = ex.repMax;
   let recHint = '';
 
-  // Session 1: 5-6 reps -> Session 2: hit repMax (8 reps) -> Session 3: jump +5kg (or +2.5kg) and start at repMin!
+  // When hitting repMax (12 reps on upper body / 10 reps on Leg Press), step up +5kg and start cleanly at 8 reps (repMin)!
   if (lastAvgReps >= ex.repMax) {
     recWeight = lastW + ex.inc;
     recReps = ex.repMin;
-    recHint = `Đủ ${ex.repMax} lần → Lên ${recWeight} kg × ${ex.repMin}–6 lần`;
+    recHint = `Đủ ${ex.repMax} lần → Lên ${recWeight} kg × ${ex.repMin} lần`;
   } else {
     recWeight = lastW;
-    recReps = ex.repMax;
-    recHint = `Giữ ${lastW} kg · Đẩy chạm ${ex.repMax} lần`;
+    recReps = Math.min(ex.repMax, Math.max(ex.repMin, lastAvgReps + 2));
+    recHint = `Giữ ${lastW} kg · Đẩy lên ${recReps} lần`;
   }
 
   let status = 'Ép lên ' + ex.repMax + ' lần';
@@ -2371,7 +2370,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=12', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=13', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
