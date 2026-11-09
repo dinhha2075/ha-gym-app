@@ -153,14 +153,14 @@ const EXERCISES = [
     id: 'EX04',
     name: 'Machine Shoulder Press - Đẩy vai máy',
     title: 'Machine Shoulder Press',
-    vnSub: 'Đẩy vai · Máy đa năng Tầng 2 (+5kg)',
+    vnSub: 'Đẩy vai · Máy chồng tạ Tầng 2 (+5kg/nấc)',
     floor: 2,
     slotE7: 'T2-3',
     slot2F: 'T2-3',
     slotA: 'A-2',
     slotB: null,
     muscle: 'Cơ vai (Deltoids), Tay sau',
-    equip: 'Máy đẩy vai đa năng (Tầng 2)',
+    equip: 'Máy đẩy vai chồng tạ Tầng 2 (ghế điều chỉnh được, +5kg/nấc)',
     sets: 2,
     setsA: 3,
     repMin: 8,
@@ -170,7 +170,7 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=Lo6dnolXt3E',
     image: 'https://www.muscleandstrength.com/exercises/shoulders',
-    cues: 'Đặt ngay sau bài Cuộn tay ở Tầng 2 để vai và tay sau được nghỉ tươi sức sau bài Ngực. Đạt đủ 12/12 lần cả 2 hiệp thì buổi sau tăng +5kg × 8/8 lần.',
+    cues: 'Máy chồng tạ cắm chốt +5kg/nấc (ghế điều chỉnh độ dựng đứng): Do bước nhảy là +5kg nên tích lũy đủ 8 → 10 → 12 lần (đạt 12/12) mới cắm chốt tăng +5kg và quay về 8/8 lần.',
     mistakes: 'Ưỡn võng thắt lưng quá mức; thả rơi tạ tự do.',
     alt: 'Dumbbell Shoulder Press'
   },
@@ -1087,7 +1087,7 @@ const EX_PHOTOS = {
   EX01: [{ label: '1. Hạ tạ sâu', url: 'Leg_Press/0.jpg' }, { label: '2. Đạp lên (không khóa gối)', url: 'Leg_Press/1.jpg' }],
   EX02: [{ label: '1. Mở ngực 90°', url: 'Leverage_Chest_Press/0.jpg' }, { label: '2. Đẩy ép ngực', url: 'Leverage_Chest_Press/1.jpg' }],
   EX03: [{ label: '1. Giãn xô trên đỉnh', url: 'Wide-Grip_Lat_Pulldown/0.jpg' }, { label: '2. Kéo xuống ngang cằm', url: 'Wide-Grip_Lat_Pulldown/1.jpg' }],
-  EX04: [{ label: '1. Hạ ngang cằm', url: 'Leverage_Shoulder_Press/0.jpg' }, { label: '2. Đẩy thẳng qua đầu', url: 'Leverage_Shoulder_Press/1.jpg' }],
+  EX04: [{ label: '1. Hạ ngang cằm (Máy chồng tạ)', url: 'Machine_Shoulder_Military_Press/0.jpg' }, { label: '2. Đẩy thẳng qua đầu', url: 'Machine_Shoulder_Military_Press/1.jpg' }],
   EX05: [{ label: '1. Khóa khuỷu tay sát sườn', url: 'Triceps_Pushdown/0.jpg' }, { label: '2. Duỗi thẳng siết tay sau', url: 'Triceps_Pushdown/1.jpg' }],
   EX06: [{ label: '1. Cáp / Máy Cuộn cổ tay', url: 'Cable_Wrist_Curl/0.jpg' }, { label: '2. Gập cổ tay kịch trần', url: 'Cable_Wrist_Curl/1.jpg' }],
   EX07: [{ label: '1. Duỗi chân có kiểm soát', url: 'Seated_Leg_Curl/0.jpg' }, { label: '2. Gập gót siết đùi sau', url: 'Seated_Leg_Curl/1.jpg' }],
@@ -2423,7 +2423,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=17', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=18', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
