@@ -82,9 +82,9 @@ const EXERCISES = [
     title: 'Leg Press',
     vnSub: 'Đạp đùi · Máy Tầng 1 (+5kg)',
     floor: 1,
-    slotE7: 'T1-5',
+    slotE7: 'T1-4',
     slot2F: 'T1-5',
-    slotA: 'A-4',
+    slotA: 'A-3',
     slotB: null,
     muscle: 'Đùi trước, Mông',
     equip: 'Máy Đạp đùi / Smith Squat (Tầng 1)',
@@ -130,9 +130,9 @@ const EXERCISES = [
     title: 'Lat Pulldown',
     vnSub: 'Kéo xô chữ V · Cáp Smith Tầng 1 (+5kg)',
     floor: 1,
-    slotE7: 'T1-6',
+    slotE7: 'T1-5',
     slot2F: 'T1-6',
-    slotA: 'A-5',
+    slotA: 'A-4',
     slotB: null,
     muscle: 'Cơ xô (Lats), Tay trước',
     equip: 'Cáp kéo xô tại máy Smith (Tầng 1)',
@@ -153,14 +153,14 @@ const EXERCISES = [
     id: 'EX04',
     name: 'Machine Shoulder Press - Đẩy vai máy',
     title: 'Machine Shoulder Press',
-    vnSub: 'Đẩy vai · Máy chồng tạ Tầng 2 (+5kg/nấc)',
-    floor: 2,
-    slotE7: 'T2-3',
-    slot2F: 'T2-3',
-    slotA: 'A-2',
+    vnSub: 'Đẩy vai · Máy ngồi Tầng 1 (+5kg/nấc)',
+    floor: 1,
+    slotE7: 'T1-7A',
+    slot2F: 'T1-8',
+    slotA: 'A-5',
     slotB: null,
     muscle: 'Cơ vai (Deltoids), Tay sau',
-    equip: 'Máy đẩy vai chồng tạ Tầng 2 (ghế điều chỉnh được, +5kg/nấc)',
+    equip: 'Máy đẩy vai ngồi Tầng 1 (+5kg/nấc · Dự phòng: Máy đa năng Tầng 2)',
     sets: 2,
     setsA: 3,
     repMin: 8,
@@ -170,9 +170,9 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=Lo6dnolXt3E',
     image: 'https://www.muscleandstrength.com/exercises/shoulders',
-    cues: 'Máy chồng tạ cắm chốt +5kg/nấc (ghế điều chỉnh độ dựng đứng): Do bước nhảy là +5kg nên tích lũy đủ 8 → 10 → 12 lần (đạt 12/12) mới cắm chốt tăng +5kg và quay về 8/8 lần.',
+    cues: 'Tập ở cuối Tầng 1 giúp cơ Vai & Tay sau được nghỉ 20 phút sau bài Ngực, đẩy khỏe 100%. Trong 90s nghỉ giữa hiệp thì kẹp luôn bài Cuộn cổ tay (T1-7B). Đủ 12/12 lần lên +5kg.',
     mistakes: 'Ưỡn võng thắt lưng quá mức; thả rơi tạ tự do.',
-    alt: 'Dumbbell Shoulder Press'
+    alt: 'Máy đa năng Tầng 2 / Dumbbell Press'
   },
   {
     id: 'EX05',
@@ -203,7 +203,7 @@ const EXERCISES = [
     title: 'Wrist Curl (Finger-Roll)',
     vnSub: 'Cuộn cổ tay · Cáp/Máy Tầng 1 (+5kg)',
     floor: 1,
-    slotE7: 'T1-8',
+    slotE7: 'T1-7B',
     slot2F: 'T1-9C',
     slotA: 'A-7',
     slotB: null,
@@ -274,7 +274,7 @@ const EXERCISES = [
     title: 'Seated Row Machine',
     vnSub: 'Kéo lưng dày & Vai sau · Tầng 1 (+5kg)',
     floor: 1,
-    slotE7: 'T1-7',
+    slotE7: 'T1-6',
     slot2F: 'T1-7',
     slotA: null,
     slotB: 'B-5',
@@ -347,9 +347,9 @@ const EXERCISES = [
     title: 'Ab Crunch Machine',
     vnSub: 'Gập bụng · Máy Tầng 2 (+5kg)',
     floor: 2,
-    slotE7: 'T2-4',
-    slot2F: 'T2-4',
-    slotA: 'A-3',
+    slotE7: 'T2-3',
+    slot2F: 'T2-3',
+    slotA: 'A-2',
     slotB: 'B-3',
     muscle: 'Cơ bụng (Rectus Abdominis)',
     equip: 'Máy gập bụng Tầng 2 (+5kg/nấc)',
@@ -672,16 +672,15 @@ function initTodayDefaults() {
 }
 
 function getTodayExercises() {
-  // Default: Tinh Nhuệ 7 Bài Chuẩn (18 hiệp · Chia đều 9 hiệp Tầng 2 + 9 hiệp Tầng 1)
+  // Default: Tinh Nhuệ 7 Bài Chuẩn (18 hiệp · Tầng 2 -> Tầng 1)
   if (state.workoutMode === 'ESSENTIAL_7') {
-    // Chặng 1 Tầng 2 (9 hiệp): EX08 Ngực trên (3h) -> EX11 Hammer/Reverse Curl (2h, nghỉ cơ đẩy) -> EX04 Đẩy vai đa năng (2h) -> EX12 Gập bụng (2h)
-    // Chặng 2 Tầng 1 (9 hiệp): EX01 Đạp đùi (3h) -> EX03 Kéo xô (2h) -> EX09 Kéo lưng/Vai sau (2h) -> EX06 Cuộn cổ tay (2h)
-    const order = ['EX08', 'EX11', 'EX04', 'EX12', 'EX01', 'EX03', 'EX09', 'EX06'];
+    // Chặng 1 Tầng 2 (3 trạm · 7 hiệp): EX08 Ngực trên (3h) -> EX11 Hammer/Reverse Curl (2h) -> EX12 Gập bụng (2h)
+    // Chặng 2 Tầng 1 (4 trạm + kẹp cổ tay · 11 hiệp): EX01 Đạp đùi (3h) -> EX03 Kéo xô (2h) -> EX09 Kéo lưng/Vai sau (2h) -> EX04 Đẩy vai (2h) + EX06 Cuộn cổ tay (2h)
+    const order = ['EX08', 'EX11', 'EX12', 'EX01', 'EX03', 'EX09', 'EX04', 'EX06'];
     return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   }
   if (state.workoutMode === 'WORKOUT_A') {
-    // Tầng 2 (EX02, EX04, EX12) -> Tầng 1 (EX01, EX03, EX05, EX06)
-    const order = ['EX02', 'EX04', 'EX12', 'EX01', 'EX03', 'EX05', 'EX06'];
+    const order = ['EX02', 'EX12', 'EX01', 'EX03', 'EX04', 'EX05', 'EX06'];
     return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   }
   if (state.workoutMode === 'WORKOUT_B') {
@@ -1733,8 +1732,8 @@ function renderTodayTab() {
         ? 'Chặng 1 · Tầng 2 (Khởi động & Tập máy Tầng 2 trước)'
         : 'Chặng 2 · Đi xuống Tầng 1 (Tập xong về luôn)';
       const floorMeta = currentFloor === 2
-        ? (state.workoutMode === 'ESSENTIAL_7' ? '4 trạm · 9 hiệp · ~18p' : state.workoutMode === 'WORKOUT_A' ? '3 bài · ~16 phút' : '3 bài · ~16 phút')
-        : (state.workoutMode === 'ESSENTIAL_7' ? '4 trạm · 9 hiệp · ~18p' : state.workoutMode === 'WORKOUT_A' ? '4 bài · ~24 phút' : '4 bài · ~26 phút');
+        ? (state.workoutMode === 'ESSENTIAL_7' ? '3 trạm · 7 hiệp · ~14p' : state.workoutMode === 'WORKOUT_A' ? '2 bài · ~12 phút' : '3 bài · ~16 phút')
+        : (state.workoutMode === 'ESSENTIAL_7' ? '4 trạm + Cổ tay · 11 hiệp · ~22p' : state.workoutMode === 'WORKOUT_A' ? '5 bài · ~30 phút' : '4 bài · ~26 phút');
       listHtml += `
         <div class="section-header">
           <span class="section-title">${floorTitle}</span>
@@ -2423,7 +2422,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=18', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=19', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
