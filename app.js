@@ -656,7 +656,7 @@ function initTodayDefaults() {
   EXERCISES.forEach(ex => {
     const stats = getExerciseStats(ex);
     const numSets = getTargetSetsCount(ex);
-    const defaultRep = stats.recReps || ex.repMax;
+    const defaultRep = Math.min(ex.repMax, Math.max(ex.repMin, stats.recReps || ex.repMax));
     if (!state.todaySession[ex.id]) {
       state.todaySession[ex.id] = {
         weight: stats.recWeight,
@@ -664,9 +664,19 @@ function initTodayDefaults() {
         rir: ex.rir
       };
     } else {
-      while (state.todaySession[ex.id].sets.length < numSets) {
-        state.todaySession[ex.id].sets.push({ reps: defaultRep, done: false });
+      const s = state.todaySession[ex.id];
+      const anyDone = Array.isArray(s.sets) && s.sets.some(st => st.done);
+      if (!anyDone) {
+        s.weight = stats.recWeight;
       }
+      while (s.sets.length < numSets) {
+        s.sets.push({ reps: defaultRep, done: false });
+      }
+      s.sets.forEach(st => {
+        if (!st.done) {
+          st.reps = defaultRep;
+        }
+      });
     }
   });
 }
@@ -2422,7 +2432,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=19', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=20', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
