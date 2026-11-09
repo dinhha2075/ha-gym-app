@@ -82,9 +82,9 @@ const EXERCISES = [
     title: 'Leg Press',
     vnSub: 'Đạp đùi · Máy Tầng 1 (+5kg)',
     floor: 1,
-    slotE7: 'T1-4',
+    slotE7: 'T1-5',
     slot2F: 'T1-5',
-    slotA: 'A-3',
+    slotA: 'A-4',
     slotB: null,
     muscle: 'Đùi trước, Mông',
     equip: 'Máy Đạp đùi / Smith Squat (Tầng 1)',
@@ -130,9 +130,9 @@ const EXERCISES = [
     title: 'Lat Pulldown',
     vnSub: 'Kéo xô chữ V · Cáp Smith Tầng 1 (+5kg)',
     floor: 1,
-    slotE7: 'T1-5',
+    slotE7: 'T1-6',
     slot2F: 'T1-6',
-    slotA: 'A-4',
+    slotA: 'A-5',
     slotB: null,
     muscle: 'Cơ xô (Lats), Tay trước',
     equip: 'Cáp kéo xô tại máy Smith (Tầng 1)',
@@ -153,14 +153,14 @@ const EXERCISES = [
     id: 'EX04',
     name: 'Machine Shoulder Press - Đẩy vai máy',
     title: 'Machine Shoulder Press',
-    vnSub: 'Đẩy vai · Máy ngồi Tầng 1 (+5kg)',
-    floor: 1,
-    slotE7: 'T1-7A',
-    slot2F: 'T1-8',
-    slotA: 'A-5',
+    vnSub: 'Đẩy vai · Máy đa năng Tầng 2 (+5kg)',
+    floor: 2,
+    slotE7: 'T2-3',
+    slot2F: 'T2-3',
+    slotA: 'A-2',
     slotB: null,
     muscle: 'Cơ vai (Deltoids), Tay sau',
-    equip: 'Máy đẩy vai ngồi (Tầng 1)',
+    equip: 'Máy đẩy vai đa năng (Tầng 2)',
     sets: 2,
     setsA: 3,
     repMin: 8,
@@ -170,7 +170,7 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=Lo6dnolXt3E',
     image: 'https://www.muscleandstrength.com/exercises/shoulders',
-    cues: '2 hiệp chuẩn (8 → 10 → 12 lần): Đạt đủ 12/12 lần cả 2 hiệp thì buổi sau tăng +5kg × 8/8 lần.',
+    cues: 'Đặt ngay sau bài Cuộn tay ở Tầng 2 để vai và tay sau được nghỉ tươi sức sau bài Ngực. Đạt đủ 12/12 lần cả 2 hiệp thì buổi sau tăng +5kg × 8/8 lần.',
     mistakes: 'Ưỡn võng thắt lưng quá mức; thả rơi tạ tự do.',
     alt: 'Dumbbell Shoulder Press'
   },
@@ -203,7 +203,7 @@ const EXERCISES = [
     title: 'Wrist Curl (Finger-Roll)',
     vnSub: 'Cuộn cổ tay · Cáp/Máy Tầng 1 (+5kg)',
     floor: 1,
-    slotE7: 'T1-7B',
+    slotE7: 'T1-8',
     slot2F: 'T1-9C',
     slotA: 'A-7',
     slotB: null,
@@ -248,23 +248,23 @@ const EXERCISES = [
     id: 'EX08',
     name: 'Incline Chest Press - Ghế nghiêng đẩy ngực trên máy',
     title: 'Incline Chest Press',
-    vnSub: 'Ngực trên · Máy ghế xéo Tầng 2 (+5kg)',
+    vnSub: 'Ngực trên · Máy lắp bánh tạ Tầng 2 (+2.5kg/bên)',
     floor: 2,
     slotE7: 'T2-1',
     slot2F: 'T2-1',
     slotA: null,
     slotB: 'B-1',
     muscle: 'Cơ ngực trên (Upper Chest)',
-    equip: 'Máy Incline ghế xéo đẩy từng bên (Tầng 2)',
+    equip: 'Máy Incline lắp bánh tạ rời 2 bên Tầng 2 (+2.5kg/bên = +5kg tổng)',
     sets: 3,
     repMin: 8,
-    repMax: 12,
+    repMax: 10,
     rir: '1–2 RIR',
     restSec: 90,
     inc: 5,
     video: 'https://www.youtube.com/watch?v=8iPEnn-ltC8',
     image: 'https://www.muscleandstrength.com/exercises/incline-bench-press.html',
-    cues: 'Tiến trình Hypertrophy 8–12 lần (24–36 cái/buổi): Đạt đủ 12 lần/hiệp thì buổi sau nhảy +5kg và bắt đầu lại ở đúng 8 lần.',
+    cues: 'Máy lắp bánh tạ rời cho phép gắn đĩa 2.5kg mỗi bên (+5kg tổng 2 tay): Vì mỗi tay chỉ tăng nhẹ +2.5kg nên anh chỉ cần đẩy từ 8 lên 10 lần (đạt 10/10/10) là buổi sau gắn thêm 2.5kg mỗi bên!',
     mistakes: 'Nhấc vai khỏi ghế; đẩy bằng cơ vai trước thay vì ngực trên.',
     alt: 'Seated Chest Press 90°'
   },
@@ -274,7 +274,7 @@ const EXERCISES = [
     title: 'Seated Row Machine',
     vnSub: 'Kéo lưng dày & Vai sau · Tầng 1 (+5kg)',
     floor: 1,
-    slotE7: 'T1-6',
+    slotE7: 'T1-7',
     slot2F: 'T1-7',
     slotA: null,
     slotB: 'B-5',
@@ -347,9 +347,9 @@ const EXERCISES = [
     title: 'Ab Crunch Machine',
     vnSub: 'Gập bụng · Máy Tầng 2 (+5kg)',
     floor: 2,
-    slotE7: 'T2-3',
-    slot2F: 'T2-3',
-    slotA: 'A-2',
+    slotE7: 'T2-4',
+    slot2F: 'T2-4',
+    slotA: 'A-3',
     slotB: 'B-3',
     muscle: 'Cơ bụng (Rectus Abdominis)',
     equip: 'Máy gập bụng Tầng 2 (+5kg/nấc)',
@@ -672,15 +672,16 @@ function initTodayDefaults() {
 }
 
 function getTodayExercises() {
-  // Default: Tinh Nhuệ 7 Bài Chuẩn (18 hiệp · Tầng 2 -> Tầng 1 · 100% Máy +5kg)
+  // Default: Tinh Nhuệ 7 Bài Chuẩn (18 hiệp · Chia đều 9 hiệp Tầng 2 + 9 hiệp Tầng 1)
   if (state.workoutMode === 'ESSENTIAL_7') {
-    // Chặng 1 Tầng 2: EX08 Ngực trên (3h), EX11 Hammer/Reverse Curl (2h), EX12 Gập bụng (2h) = 7 hiệp
-    // Chặng 2 Tầng 1: EX01 Đạp đùi (3h), EX03 Kéo xô (2h), EX09 Kéo lưng/Vai sau (2h), EX04 Đẩy vai (2h) + EX06 Cuộn cổ tay (2h) = 11 hiệp
-    const order = ['EX08', 'EX11', 'EX12', 'EX01', 'EX03', 'EX09', 'EX04', 'EX06'];
+    // Chặng 1 Tầng 2 (9 hiệp): EX08 Ngực trên (3h) -> EX11 Hammer/Reverse Curl (2h, nghỉ cơ đẩy) -> EX04 Đẩy vai đa năng (2h) -> EX12 Gập bụng (2h)
+    // Chặng 2 Tầng 1 (9 hiệp): EX01 Đạp đùi (3h) -> EX03 Kéo xô (2h) -> EX09 Kéo lưng/Vai sau (2h) -> EX06 Cuộn cổ tay (2h)
+    const order = ['EX08', 'EX11', 'EX04', 'EX12', 'EX01', 'EX03', 'EX09', 'EX06'];
     return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   }
   if (state.workoutMode === 'WORKOUT_A') {
-    const order = ['EX02', 'EX12', 'EX01', 'EX03', 'EX04', 'EX05', 'EX06'];
+    // Tầng 2 (EX02, EX04, EX12) -> Tầng 1 (EX01, EX03, EX05, EX06)
+    const order = ['EX02', 'EX04', 'EX12', 'EX01', 'EX03', 'EX05', 'EX06'];
     return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   }
   if (state.workoutMode === 'WORKOUT_B') {
@@ -1732,8 +1733,8 @@ function renderTodayTab() {
         ? 'Chặng 1 · Tầng 2 (Khởi động & Tập máy Tầng 2 trước)'
         : 'Chặng 2 · Đi xuống Tầng 1 (Tập xong về luôn)';
       const floorMeta = currentFloor === 2
-        ? (state.workoutMode === 'ESSENTIAL_7' ? '3 trạm · 7 hiệp · ~14p' : state.workoutMode === 'WORKOUT_A' ? '2 bài · ~12 phút' : '3 bài · ~16 phút')
-        : (state.workoutMode === 'ESSENTIAL_7' ? '4 trạm + Cổ tay · 11 hiệp · ~22p' : state.workoutMode === 'WORKOUT_A' ? '5 bài · ~30 phút' : '4 bài · ~26 phút');
+        ? (state.workoutMode === 'ESSENTIAL_7' ? '4 trạm · 9 hiệp · ~18p' : state.workoutMode === 'WORKOUT_A' ? '3 bài · ~16 phút' : '3 bài · ~16 phút')
+        : (state.workoutMode === 'ESSENTIAL_7' ? '4 trạm · 9 hiệp · ~18p' : state.workoutMode === 'WORKOUT_A' ? '4 bài · ~24 phút' : '4 bài · ~26 phút');
       listHtml += `
         <div class="section-header">
           <span class="section-title">${floorTitle}</span>
@@ -2422,7 +2423,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=16', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=17', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
