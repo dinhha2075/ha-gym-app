@@ -79,15 +79,15 @@ const EXERCISES = [
   {
     id: 'EX01',
     name: 'Leg Press - Đạp đùi',
-    title: 'Leg Press',
-    vnSub: 'Đạp đùi · Máy Tầng 1 (+5kg)',
+    title: 'Leg Press / V-Squat',
+    vnSub: 'Đạp & Gánh đùi · Máy Vàng-Đen Tầng 1 (+2.5kg/bên)',
     floor: 1,
     slotE7: 'T1-4',
     slot2F: 'T1-5',
     slotA: 'A-3',
     slotB: null,
     muscle: 'Đùi trước, Mông',
-    equip: 'Máy Đạp đùi / Smith Squat (Tầng 1)',
+    equip: 'Máy Đạp đùi 45° / Máy V-Squat Vàng-Đen Tầng 1 (Lắp bánh tạ rời 2 bên)',
     sets: 3,
     repMin: 8,
     repMax: 10,
@@ -96,21 +96,21 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=IZxyjW7MPJQ',
     image: 'https://www.muscleandstrength.com/exercises/45-degree-leg-press.html',
-    cues: 'Ở mức tạ 160kg+, bước nhảy +5kg chỉ bằng 3% tải nên chỉ cần tích lũy từ 8 lên 10 lần (24–30 cái/buổi) là đủ nhảy +5kg.',
-    mistakes: 'Khóa cứng đầu gối; nhấc mông khỏi đệm; đầu gối sụp vào trong.',
-    alt: 'Smith Squat / Hack Squat'
+    cues: 'Góc trong Tầng 1 có cặp Máy Đạp đùi 45° & Máy Gánh đùi V-Squat màu Vàng-Đen sát cạnh nhau (đều lắp bánh tạ rời, gắn được đĩa 2.5kg/bên = +5kg tổng). Đạt đủ 10/10/10 lần thì buổi sau gắn thêm 2.5kg mỗi bên.',
+    mistakes: 'Khóa cứng đầu gối; nhấc mông/lưng khỏi đệm; đầu gối sụp vào trong.',
+    alt: 'Máy V-Squat Vàng-Đen / Smith Squat (Tầng 1)'
   },
   {
     id: 'EX02',
     name: 'Seated Machine Chest Press - Ngồi thẳng đẩy ngực máy',
     title: 'Seated Chest Press',
-    vnSub: 'Ngực giữa · Máy 90° Tầng 2 (+5kg)',
+    vnSub: 'Ngực giữa · Máy Xám 90° Tầng 2 (+5kg/nấc)',
     floor: 2,
     slot2F: 'T2-4',
     slotA: 'A-1',
     slotB: null,
     muscle: 'Ngực giữa, Tay sau',
-    equip: 'Máy ngồi đẩy ngực 90 độ (Tầng 2)',
+    equip: 'Máy Đẩy ngực ngồi 90° khung xám Tầng 2 (+5kg/nấc · Dự phòng: MULTI PRESS Đen)',
     sets: 2,
     setsA: 3,
     repMin: 8,
@@ -120,22 +120,22 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=jrBo8-VSR9M',
     image: 'https://www.muscleandstrength.com/exercises/chest',
-    cues: 'Tiến trình Hypertrophy 8–12 lần (24–36 cái/buổi): Đạt đủ 12 lần/hiệp thì buổi sau nhảy +5kg và bắt đầu lại ở đúng 8 lần.',
+    cues: 'Máy khung xám tay cầm chữ U inox ở Tầng 2 (chồng tạ +5kg/nấc): Đạt đủ 12 lần/hiệp thì buổi sau cắm chốt +5kg và bắt đầu lại ở 8 lần.',
     mistakes: 'Nhô vai về trước; cùi chỏ mở ngang 90° gây đau vai.',
-    alt: 'Smith Flat Press'
+    alt: 'Máy MULTI PRESS Đen Tầng 2 / Máy Đen Tầng 1'
   },
   {
     id: 'EX03',
     name: 'Lat Pulldown - Kéo xô máy',
     title: 'Lat Pulldown',
-    vnSub: 'Kéo xô chữ V · Cáp Smith Tầng 1 (+5kg)',
+    vnSub: 'Kéo xô cao · Tháp Cáp 4 Trạm Tầng 1 (+5kg/nấc)',
     floor: 1,
     slotE7: 'T1-5',
     slot2F: 'T1-6',
     slotA: 'A-4',
     slotB: null,
     muscle: 'Cơ xô (Lats), Tay trước',
-    equip: 'Cáp kéo xô tại máy Smith (Tầng 1)',
+    equip: 'Tháp Cáp 4 Trạm Tầng 1 (+5kg/nấc · Dự phòng: Máy Kéo Xô Đen lắp tạ rời Tầng 1)',
     sets: 2,
     setsA: 3,
     repMin: 8,
@@ -145,22 +145,22 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=SALxEARiMkw',
     image: 'https://www.muscleandstrength.com/exercises/lat-pull-down.html',
-    cues: '2 hiệp chuẩn (8 → 10 → 12 lần): Đạt đủ 12/12 lần cả 2 hiệp thì buổi sau cắm chốt +5kg và bắt đầu lại ở 8/8 lần.',
+    cues: 'Ngồi trạm Kéo xô cao trên Tháp Cáp 4 Trạm Tầng 1 (chồng tạ 14 nấc dán tem kg/lbs nhảy ~5kg/nấc). Đạt 12/12 lần cả 2 hiệp thì cắm chốt +5kg về 8 lần. Nếu cáp đông: qua mặt sau Máy Đen sát đó (kéo xô độc lập 2 tay lắp đĩa 2.5kg/bên).',
     mistakes: 'Ngả người ra sau quá sâu lấy đà; kéo thanh ra sau gáy.',
-    alt: 'Assisted Pull-up'
+    alt: 'Máy Kéo Xô Đen lắp tạ rời Tầng 1 / Máy Trợ lực Xà Tầng 2'
   },
   {
     id: 'EX04',
     name: 'Machine Shoulder Press - Đẩy vai máy',
     title: 'Machine Shoulder Press',
-    vnSub: 'Đẩy vai · Máy ngồi Tầng 1 (+5kg/nấc)',
+    vnSub: 'Đẩy vai · Máy Vàng-Đen lắp tạ Tầng 1 (+2.5kg/bên)',
     floor: 1,
     slotE7: 'T1-7A',
     slot2F: 'T1-8',
     slotA: 'A-5',
     slotB: null,
     muscle: 'Cơ vai (Deltoids), Tay sau',
-    equip: 'Máy đẩy vai ngồi Tầng 1 (+5kg/nấc · Dự phòng: Máy đa năng Tầng 2)',
+    equip: 'Máy Đẩy vai Vàng-Đen lắp bánh tạ Tầng 1 (+2.5kg/bên = +5kg tổng · Dự phòng: MULTI PRESS Tầng 2)',
     sets: 2,
     setsA: 3,
     repMin: 8,
@@ -170,21 +170,21 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=Lo6dnolXt3E',
     image: 'https://www.muscleandstrength.com/exercises/shoulders',
-    cues: 'Tập ở cuối Tầng 1 giúp cơ Vai & Tay sau được nghỉ 20 phút sau bài Ngực, đẩy khỏe 100%. Trong 90s nghỉ giữa hiệp thì kẹp luôn bài Cuộn cổ tay (T1-7B). Đủ 12/12 lần lên +5kg.',
+    cues: 'Lợi đơn lợi kép ở cuối Tầng 1: Vai vừa được nghỉ 20 phút sau bài Ngực Tầng 2, vừa tập trên Máy Vàng-Đen lắp bánh tạ rời (gắn được đĩa nhỏ 2.5kg mỗi bên = +5kg tổng)! Nghỉ 90s bước 3m sang Tháp Cáp kẹp luôn Cuộn cổ tay (T1-7B). Đủ 12/12 lần gắn thêm 2.5kg/bên.',
     mistakes: 'Ưỡn võng thắt lưng quá mức; thả rơi tạ tự do.',
-    alt: 'Máy đa năng Tầng 2 / Dumbbell Press'
+    alt: 'Máy MULTI PRESS Đen chồng tạ Tầng 2 (+5kg/nấc)'
   },
   {
     id: 'EX05',
     name: 'Triceps Pushdown - Kéo cáp tay sau',
     title: 'Triceps Pushdown',
-    vnSub: 'Kéo cáp tay sau · Máy Smith Tầng 1',
+    vnSub: 'Kéo cáp tay sau · Tháp Cáp 4 Trạm Tầng 1 (+5kg)',
     floor: 1,
     slot2F: 'T1-9B',
     slotA: 'A-6',
     slotB: null,
     muscle: 'Cơ tay sau (Triceps)',
-    equip: 'Cáp kéo tay sau tại máy Smith Tầng 1 (+5kg/nấc)',
+    equip: 'Ròng rọc cao + Dây thừng/Thanh thẳng tại Tháp Cáp 4 Trạm Tầng 1 (+5kg/nấc)',
     sets: 2,
     repMin: 10,
     repMax: 15,
@@ -193,22 +193,22 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=2-LAMcpzODU',
     image: 'https://www.muscleandstrength.com/exercises/triceps',
-    cues: 'Chốt cáp nhảy +5kg/nấc: Tích lũy 2 hiệp theo mốc 10 → 12 → 15 lần. Đạt đủ 15/15 lần mới tăng +5kg và quay lại 10 lần.',
+    cues: 'Chốt ròng rọc lên cao trên Tháp Cáp 4 Trạm Tầng 1 (có sẵn dây thừng đen & thanh thẳng dưới chân): Tích lũy 2 hiệp 10 → 12 → 15 lần, đạt đủ 15/15 lần mới cắm chốt +5kg về 10 lần.',
     mistakes: 'Vung vẩy khuỷu tay; dùng sức nặng cơ thể đè lên cáp.',
-    alt: 'Overhead Cable Extension'
+    alt: 'Máy Trợ lực Xà kép Tầng 2 (Dip)'
   },
   {
     id: 'EX06',
     name: 'Wrist Curl - Cuộn cổ tay',
     title: 'Wrist Curl (Finger-Roll)',
-    vnSub: 'Cuộn cổ tay · Cáp/Máy Tầng 1 (+5kg)',
+    vnSub: 'Cuộn cổ tay · Cáp thấp Tháp Cáp Tầng 1 (+5kg)',
     floor: 1,
     slotE7: 'T1-7B',
     slot2F: 'T1-9C',
     slotA: 'A-7',
     slotB: null,
     muscle: 'Cơ gập cổ tay, Sức nắm (Grip)',
-    equip: 'Cáp Smith / Máy Tầng 1 (+5kg/nấc) + 45s Farmer Hold',
+    equip: 'Ròng rọc thấp + Thanh thẳng xoay Tháp Cáp Tầng 1 (+5kg/nấc) + 45s Farmer Hold',
     sets: 2,
     repMin: 10,
     repMax: 15,
@@ -217,21 +217,21 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=1-55N7Qlu_U',
     image: 'https://www.muscleandstrength.com/exercises/barbell-wrist-curl.html',
-    cues: 'Tập Cáp/Máy nhảy +5kg/nấc: Tích lũy 2 hiệp từ 10 → 12 → 15 lần (đạt 15/15 lần mới lên +5kg). Nếu cầm Tạ đơn từng tay thì nhảy +2.5kg ở mốc 15 lần. Cuối buổi xách tạ 45s.',
+    cues: 'Cách máy Đẩy vai Vàng-Đen đúng 3 bước chân: Hạ chốt đỏ ròng rọc Tháp Cáp xuống thấp nhất, móc thanh đòn thẳng xoay có sẵn dưới đất để cuộn cổ tay ngửa (tích lũy 10 → 12 → 15 lần lên +5kg). Nếu cầm Tạ đơn kệ gương thì nhảy +2.5kg. Cuối buổi xách tạ 45s.',
     mistakes: 'Nhấc cả cẳng tay khỏi đùi; giật cổ tay theo quán tính.',
-    alt: 'Dumbbell Finger-Roll (+2.5kg)'
+    alt: 'Dumbbell Finger-Roll kệ gương Tầng 1 (+2.5kg)'
   },
   {
     id: 'EX07',
     name: 'Seated Leg Curl - Cuộn đùi sau máy',
-    title: 'Seated Leg Curl',
-    vnSub: 'Cuộn đùi sau · Tầng 1',
-    floor: 1,
+    title: 'Lying Leg Curl (Đùi sau)',
+    vnSub: 'Nằm móc đùi sau · Máy MBH Tầng 2 (+5kg)',
+    floor: 2,
     slot2F: null,
     slotA: null,
     slotB: 'B-4',
     muscle: 'Cơ đùi sau (Hamstrings)',
-    equip: 'Máy đùi sau / RDL (Tầng 1)',
+    equip: 'Máy nằm sấp móc đùi sau MBH đệm nâu Tầng 2 (+5kg/nấc)',
     sets: 3,
     repMin: 10,
     repMax: 12,
@@ -240,22 +240,22 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=Orxowest56U',
     image: 'https://www.muscleandstrength.com/exercises/leg-curl.html',
-    cues: 'Khóa chặt đệm đùi; gập gót chân về sau hết biên độ siết đùi sau 1 giây; trả chậm 2–3 giây.',
-    mistakes: 'Nhấc mông khỏi ghế; dùng đà giật gót.',
-    alt: 'Dumbbell Romanian Deadlift'
+    cues: 'Tại PLUS GYM, máy đùi sau chồng tạ chuyên dụng là máy Nằm sấp MBH đệm nâu ở Tầng 2: Áp chặt xương hông xuống đệm, gập gót chân về mông siết đùi sau 1 giây, trả chậm 2–3 giây.',
+    mistakes: 'Nhấc bổng mông khi gập tạ; dùng đà giật gót.',
+    alt: 'Ghế Lưng dưới / Đùi sau 45° Tầng 2 (Roman Chair)'
   },
   {
     id: 'EX08',
     name: 'Incline Chest Press - Ghế nghiêng đẩy ngực trên máy',
     title: 'Incline Chest Press',
-    vnSub: 'Ngực trên · Máy lắp bánh tạ Tầng 2 (+2.5kg/bên)',
+    vnSub: 'Ngực trên · Máy Vàng-Đen lắp tạ Tầng 2 (+2.5kg/bên)',
     floor: 2,
     slotE7: 'T2-1',
     slot2F: 'T2-1',
     slotA: null,
     slotB: 'B-1',
     muscle: 'Cơ ngực trên (Upper Chest)',
-    equip: 'Máy Incline lắp bánh tạ rời 2 bên Tầng 2 (+2.5kg/bên = +5kg tổng)',
+    equip: 'Máy Incline Vàng-Đen lắp bánh tạ rời 2 bên Tầng 2 (+2.5kg/bên = +5kg tổng)',
     sets: 3,
     repMin: 8,
     repMax: 10,
@@ -264,22 +264,22 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=8iPEnn-ltC8',
     image: 'https://www.muscleandstrength.com/exercises/incline-bench-press.html',
-    cues: 'Máy lắp bánh tạ rời cho phép gắn đĩa 2.5kg mỗi bên (+5kg tổng 2 tay): Vì mỗi tay chỉ tăng nhẹ +2.5kg nên anh chỉ cần đẩy từ 8 lên 10 lần (đạt 10/10/10) là buổi sau gắn thêm 2.5kg mỗi bên!',
+    cues: 'Máy Vàng-Đen đặt ở phòng thảm đen Tầng 2, lắp bánh tạ rời 2 bên: Vì mỗi tay chỉ tăng nhẹ +2.5kg (+5kg tổng 2 bên) nên anh chỉ cần đẩy từ 8 lên 10 lần (đạt 10/10/10) là buổi sau gắn thêm đĩa 2.5kg mỗi bên!',
     mistakes: 'Nhấc vai khỏi ghế; đẩy bằng cơ vai trước thay vì ngực trên.',
-    alt: 'Seated Chest Press 90°'
+    alt: 'Máy MULTI PRESS Đen Tầng 2 (chồng tạ)'
   },
   {
     id: 'EX09',
     name: 'Seated Row Machine - Kéo lưng ngồi máy',
     title: 'Seated Row Machine',
-    vnSub: 'Kéo lưng dày & Vai sau · Tầng 1 (+5kg)',
+    vnSub: 'Kéo lưng & Vai sau · Máy Vàng-Đen Tầng 1 (+2.5kg/bên)',
     floor: 1,
     slotE7: 'T1-6',
     slot2F: 'T1-7',
     slotA: null,
     slotB: 'B-5',
     muscle: 'Cơ lưng giữa, Vai sau (Rear Delts)',
-    equip: 'Máy ngồi Row Machine (Tầng 1)',
+    equip: 'Máy Ngồi Kéo Lưng Vàng-Đen đệm ngực tròn Tầng 1 (Lắp bánh tạ rời +2.5kg/bên = +5kg tổng)',
     sets: 2,
     setsB: 3,
     repMin: 8,
@@ -289,21 +289,21 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=3EP5HpKtJG0',
     image: 'https://www.muscleandstrength.com/exercises/middle-back',
-    cues: 'Hiệp 1 khép khuỷu tay kéo vào bụng ăn Lưng giữa; Hiệp 2 cầm ngang mở khuỷu tay 70° kéo về ngực trên ăn Vai sau (chống gù vai). Đủ 12/12 lần lên +5kg.',
-    mistakes: 'Dùng đà giật thân người rời khỏi đệm; nhún vai co cổ.',
-    alt: 'Seated Cable Row'
+    cues: 'Máy Vàng-Đen Tầng 1 lắp bánh tạ rời 2 bên (+2.5kg/bên) & có sẵn đủ 2 tay cầm: Hiệp 1 nắm 2 tay cầm DỌC kéo sát sườn ăn dày Lưng giữa; Hiệp 2 nắm 2 tay cầm NGANG trên cao mở cùi chỏ 70° kéo về ngực trên ăn Vai sau. Đủ 12/12 lần gắn thêm 2.5kg/bên.',
+    mistakes: 'Dùng đà giật thân người rời khỏi đệm ngực tròn; nhún vai co cổ.',
+    alt: 'Cáp ngồi thấp Tháp Cáp / Máy Rear Delt MBH Tầng 1'
   },
   {
     id: 'EX10',
     name: 'Lateral Raise - Nâng vai ngang',
     title: 'Lateral Raise',
-    vnSub: 'Nâng vai ngang · Tạ đơn Tầng 1',
+    vnSub: 'Nâng vai ngang · Dàn Tạ đơn gương Tầng 1',
     floor: 1,
     slot2F: 'T1-9A',
     slotA: null,
     slotB: 'B-6',
     muscle: 'Cơ vai giữa (Lateral Deltoid)',
-    equip: 'Tạ đơn (Tầng 1)',
+    equip: 'Dàn Tạ đơn dọc gương Tầng 1 (+2.5kg)',
     sets: 2,
     setsB: 3,
     repMin: 12,
@@ -313,22 +313,22 @@ const EXERCISES = [
     inc: 2.5,
     video: 'https://www.youtube.com/watch?v=3VcKaXpzqRo',
     image: 'https://www.muscleandstrength.com/exercises/dumbbell-lateral-raise.html',
-    cues: 'Hơi đổ nhẹ người về trước 10°, dẫn hướng bằng cùi chỏ nâng ngang tầm vai; hạ chậm 2–3 giây.',
+    cues: 'Đứng trước dàn tạ đơn dọc gương Tầng 1: Hơi đổ nhẹ người về trước 10°, dẫn hướng bằng cùi chỏ nâng ngang tầm vai; hạ chậm 2–3 giây.',
     mistakes: 'Dùng đà nhún người; nâng quá cao làm co cầu vai.',
-    alt: 'Cable Lateral Raise'
+    alt: 'Cáp kéo vai ngang tại Tháp Cáp Tầng 1'
   },
   {
     id: 'EX11',
     name: 'Hammer Curl - Cuộn tay trước búa',
     title: 'Hammer & Reverse Curl',
-    vnSub: 'Tay trước & Cẳng tay · Máy Tầng 2 (+5kg)',
+    vnSub: 'Tay trước & Cẳng tay · Máy MBH chữ V Tầng 2 (+5kg)',
     floor: 2,
     slotE7: 'T2-2',
     slot2F: 'T2-2',
     slotA: null,
     slotB: 'B-2',
     muscle: 'Brachioradialis (Cẳng tay), Biceps',
-    equip: 'Máy cuộn bắp tay Tầng 2 (+5kg/nấc) / Tạ đơn',
+    equip: 'Máy Cuộn tay MBH tay cầm chữ V Tầng 2 (+5kg/nấc · Sát bên có Ghế EZ-Bar lắp tạ rời)',
     sets: 2,
     repMin: 10,
     repMax: 15,
@@ -337,22 +337,22 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=HfSzuZPVlnA',
     image: 'https://www.muscleandstrength.com/exercises/biceps',
-    cues: 'Tập Máy Tầng 2 nhảy +5kg/nấc: Tích lũy 2 hiệp từ 10 → 12 → 15 lần (đạt 15/15 lần mới nhảy +5kg về 10 lần). Hiệp 1 nắm Búa (Hammer), Hiệp 2 nắm Sấp tay (Reverse). Nếu dùng Tạ đơn thì nhảy +2.5kg.',
-    mistakes: 'Đung đưa khuỷu tay lấy đà; thả tạ rơi mất sức căng.',
-    alt: 'Dumbbell Hammer Curl (+2.5kg)'
+    cues: 'Máy MBH đệm nâu Tầng 2 có tay cầm chữ V xoay (+5kg/nấc, tích lũy 10 → 12 → 15 lần): Hiệp 1 úp SẤP bàn tay (Reverse Grip) nắm tay chữ V cuộn lên ăn căng bắp cẳng tay trên; Hiệp 2 nắm NGỬA tay (Underhand EZ) bơm đỉnh Bắp tay trước (hoặc cầm Búa tạ đơn). Muốn tăng nhỏ +2.5kg thì dùng Ghế EZ-Bar lắp tạ rời ngay sát cạnh!',
+    mistakes: 'Nhổm nách khỏi đệm nâu lấy đà; thả tạ rơi mất sức căng.',
+    alt: 'Ghế Preacher EZ-Bar lắp tạ rời Tầng 2 / Tạ đơn Hammer'
   },
   {
     id: 'EX12',
     name: 'Ab Crunch Machine - Gập bụng với máy',
     title: 'Ab Crunch Machine',
-    vnSub: 'Gập bụng · Máy Tầng 2 (+5kg)',
+    vnSub: 'Gập bụng · Máy đệm vai nâu Tầng 2 (+5kg)',
     floor: 2,
     slotE7: 'T2-3',
     slot2F: 'T2-3',
     slotA: 'A-2',
     slotB: 'B-3',
     muscle: 'Cơ bụng (Rectus Abdominis)',
-    equip: 'Máy gập bụng Tầng 2 (+5kg/nấc)',
+    equip: 'Máy Gập bụng ngồi chồng tạ Tầng 2 (Sát khu Bao cát ONE)',
     sets: 2,
     repMin: 12,
     repMax: 15,
@@ -361,21 +361,21 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=_O1xunCfYEM',
     image: 'https://www.muscleandstrength.com/exercises/ab-crunch-machine.html',
-    cues: '2 hiệp × 12–15 lần: Cố định hông, thở hết hơi ra khi cuộn tròn đốt sống ngực ép xuống, đạt 15/15 lần thì tăng +5kg.',
-    mistakes: 'Dùng lực tay kéo máy hoặc gập hông mà không cuộn cột sống.',
-    alt: 'Cable Kneeling Crunch'
+    cues: 'Máy gập bụng đệm vai tròn màu nâu đặt sát bao cát Tầng 2 (2 hiệp × 12–15 lần): Cố định hông, hai tay ôm đệm trên vai, thở hết hơi cuộn tròn đốt sống ngực ép xuống. Đạt 15/15 lần cắm chốt +5kg.',
+    mistakes: 'Gập khớp hông mà không cuộn tròn cột sống ngực.',
+    alt: 'Ghế gập bụng dốc xuống Tầng 2'
   },
   {
     id: 'EX13',
     name: 'Reverse Wrist Curl - Cuộn cổ tay ngược',
     title: 'Reverse Wrist Curl',
-    vnSub: 'Cuộn cổ tay sấp · Tạ đơn Tầng 1',
+    vnSub: 'Cuộn cổ tay sấp · Tạ đơn / Cáp thấp Tầng 1',
     floor: 1,
     slot2F: 'Opt',
     slotA: null,
     slotB: 'B-7',
     muscle: 'Cơ duỗi cổ tay (Mặt trên cẳng tay)',
-    equip: 'Tạ đơn (Tầng 1) + 45s Farmer Hold',
+    equip: 'Tạ đơn kệ gương / Thanh thẳng cáp thấp Tầng 1 + 45s Farmer Hold',
     sets: 2,
     repMin: 12,
     repMax: 20,
@@ -384,9 +384,9 @@ const EXERCISES = [
     inc: 2.5,
     video: 'https://www.youtube.com/watch?v=hCMC4Vh2g_s',
     image: 'https://www.muscleandstrength.com/exercises/forearms',
-    cues: 'Úp sấp lòng bàn tay, tì cố định cẳng tay, vểnh mu bàn tay lên cao hết cỡ giữ 1 giây để nổi rõ đường gân mặt ngoài.',
+    cues: 'Úp sấp lòng bàn tay cầm tạ đơn (hoặc thanh thẳng cáp thấp), tì cố định cẳng tay lên đùi, vểnh mu bàn tay lên cao hết cỡ giữ 1 giây để nổi rõ đường gân mặt ngoài.',
     mistakes: 'Dùng tạ quá nặng gây mỏi khớp cổ tay.',
-    alt: 'Overhand Wrist Roller'
+    alt: 'Cuộn sấp tay với thanh EZ-Bar'
   }
 ];
 
@@ -1092,27 +1092,75 @@ let sheetOpen = false;
 let currentSheetY = 400;
 
 const EX_IMG_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
+
+// Ảnh chụp thực tế các máy tại phòng tập PLUS GYM của anh Hà (Tầng 2 & Tầng 1)
+const REAL_GYM_PHOTOS = {
+  EX01: [
+    { label: 'Máy Gánh/Đạp Đùi Vàng-Đen · Tầng 1 (Gắn đĩa 2.5kg/bên)', src: './img/gym/t1_vsquat_leg.jpg' }
+  ],
+  EX02: [
+    { label: 'Máy Đẩy Ngực 90° Xám · Tầng 2 (+5kg)', src: './img/gym/t2_chest_press_90.jpg' },
+    { label: 'Dự phòng: MULTI PRESS Đen · Tầng 2', src: './img/gym/t2_multi_press.jpg' }
+  ],
+  EX03: [
+    { label: 'Tháp Cáp 4 Trạm · Tầng 1 (+5kg/nấc)', src: './img/gym/t1_cable_lat.jpg' },
+    { label: 'Dự phòng: Máy Đen 2 mặt (Kéo xô tạ rời)', src: './img/gym/t1_iso_chest_lat.jpg' }
+  ],
+  EX04: [
+    { label: 'Chính: Máy Vai Vàng-Đen Tầng 1 (+2.5kg/bên)', src: './img/gym/t1_shoulder_press.jpg' },
+    { label: 'Dự phòng: MULTI PRESS Đen Tầng 2 (+5kg)', src: './img/gym/t2_multi_press.jpg' }
+  ],
+  EX05: [
+    { label: 'Tháp Cáp Tầng 1 · Dây thừng & Thanh thẳng dưới chân', src: './img/gym/t1_cable_pushdown.jpg' }
+  ],
+  EX06: [
+    { label: 'Ròng rọc thấp + Thanh thẳng xoay (Cách máy Vai 3m)', src: './img/gym/t1_cable_pushdown.jpg' }
+  ],
+  EX07: [
+    { label: 'Máy Nằm Sấp Móc Đùi Sau MBH · Tầng 2 (+5kg/nấc)', src: './img/gym/t2_lying_leg_curl.jpg' }
+  ],
+  EX08: [
+    { label: 'Máy Ngực Trên Vàng-Đen · Tầng 2 (Lắp đĩa 2.5kg/bên)', src: './img/gym/t2_incline_press.jpg' }
+  ],
+  EX09: [
+    { label: 'Chính: Máy Row Vàng-Đen Tầng 1 (+2.5kg/bên)', src: './img/gym/t1_seated_row.jpg' },
+    { label: 'Bổ trợ Vai sau: Máy MBH Pec/Rear Delt Tầng 1', src: './img/gym/t1_pec_reardelt.jpg' }
+  ],
+  EX10: [
+    { label: 'Khu Kệ Tạ Đơn Dọc Gương & Máy Đòn Bẩy · Tầng 1', src: './img/gym/t1_dumbbell_zone.jpg' }
+  ],
+  EX11: [
+    { label: 'Chính: Máy Cuộn Tay MBH chữ V · Tầng 2 (+5kg)', src: './img/gym/t2_bicep_machine.jpg' },
+    { label: 'Sát cạnh: Ghế EZ-Bar lắp tạ rời · Tầng 2', src: './img/gym/t2_ez_preacher.jpg' }
+  ],
+  EX12: [
+    { label: 'Máy Gập Bụng Đệm Vai Nâu · Tầng 2 (Sát khu Bao cát)', src: './img/gym/t2_ab_crunch.jpg' }
+  ],
+  EX13: [
+    { label: 'Khu Tạ Đơn Kệ Gương · Tầng 1', src: './img/gym/t1_dumbbell_zone.jpg' },
+    { label: 'Thanh Đòn Thẳng Cáp Thấp · Tầng 1', src: './img/gym/t1_cable_pushdown.jpg' }
+  ]
+};
+
 const EX_PHOTOS = {
   EX01: [{ label: '1. Hạ tạ sâu', url: 'Leg_Press/0.jpg' }, { label: '2. Đạp lên (không khóa gối)', url: 'Leg_Press/1.jpg' }],
   EX02: [{ label: '1. Mở ngực 90°', url: 'Leverage_Chest_Press/0.jpg' }, { label: '2. Đẩy ép ngực', url: 'Leverage_Chest_Press/1.jpg' }],
   EX03: [{ label: '1. Giãn xô trên đỉnh', url: 'Wide-Grip_Lat_Pulldown/0.jpg' }, { label: '2. Kéo xuống ngang cằm', url: 'Wide-Grip_Lat_Pulldown/1.jpg' }],
-  EX04: [{ label: '1. Hạ ngang cằm (Máy chồng tạ)', url: 'Machine_Shoulder_Military_Press/0.jpg' }, { label: '2. Đẩy thẳng qua đầu', url: 'Machine_Shoulder_Military_Press/1.jpg' }],
+  EX04: [{ label: '1. Hạ ngang cằm mở vai', url: 'Leverage_Shoulder_Press/0.jpg' }, { label: '2. Đẩy thẳng qua đầu', url: 'Leverage_Shoulder_Press/1.jpg' }],
   EX05: [{ label: '1. Khóa khuỷu tay sát sườn', url: 'Triceps_Pushdown/0.jpg' }, { label: '2. Duỗi thẳng siết tay sau', url: 'Triceps_Pushdown/1.jpg' }],
   EX06: [{ label: '1. Cáp / Máy Cuộn cổ tay', url: 'Cable_Wrist_Curl/0.jpg' }, { label: '2. Gập cổ tay kịch trần', url: 'Cable_Wrist_Curl/1.jpg' }],
-  EX07: [{ label: '1. Duỗi chân có kiểm soát', url: 'Seated_Leg_Curl/0.jpg' }, { label: '2. Gập gót siết đùi sau', url: 'Seated_Leg_Curl/1.jpg' }],
+  EX07: [{ label: '1. Nằm sấp áp chặt hông', url: 'Lying_Leg_Curls/0.jpg' }, { label: '2. Gập gót siết đùi sau', url: 'Lying_Leg_Curls/1.jpg' }],
   EX08: [{ label: '1. Hạ sâu mở ngực trên', url: 'Leverage_Incline_Chest_Press/0.jpg' }, { label: '2. Đẩy chéo lên đỉnh', url: 'Leverage_Incline_Chest_Press/1.jpg' }],
   EX09: [
-    { label: 'Hiệp 1 · Cầm dọc (Duỗi bả vai)', url: 'Leverage_Iso_Row/0.jpg' },
+    { label: 'Hiệp 1 · Tay cầm dọc (Duỗi vai)', url: 'Leverage_Iso_Row/0.jpg' },
     { label: 'Hiệp 1 · Kéo sát sườn (Lưng giữa)', url: 'Leverage_Iso_Row/1.jpg' },
-    { label: 'Hiệp 2 · Cầm ngang mở 70° (Duỗi)', url: 'Cable_Rope_Rear-Delt_Rows/0.jpg' },
+    { label: 'Hiệp 2 · Tay cầm ngang (Duỗi)', url: 'Cable_Rope_Rear-Delt_Rows/0.jpg' },
     { label: 'Hiệp 2 · Mở cùi chỏ 70° (Vai sau)', url: 'Cable_Rope_Rear-Delt_Rows/1.jpg' }
   ],
   EX10: [{ label: '1. Chuẩn bị nâng ngang', url: 'Side_Lateral_Raise/0.jpg' }, { label: '2. Nâng ngang tầm vai', url: 'Side_Lateral_Raise/1.jpg' }],
   EX11: [
-    { label: 'Hiệp 1 · Hammer Grip (Cầm búa)', url: 'Hammer_Curls/1.jpg' },
-    { label: 'Hiệp 2 · Reverse Grip (Cầm sấp)', url: 'Standing_Dumbbell_Reverse_Curl/1.jpg' },
-    { label: 'Máy cuộn tay Tầng 2 · Duỗi', url: 'Machine_Preacher_Curls/0.jpg' },
-    { label: 'Máy cuộn tay Tầng 2 · Cuộn', url: 'Machine_Preacher_Curls/1.jpg' }
+    { label: 'Hiệp 1 · Nắm Sấp (Ăn cẳng tay trên)', url: 'Standing_Dumbbell_Reverse_Curl/1.jpg' },
+    { label: 'Hiệp 2 · Nắm Ngửa / Búa (Ăn bắp trước)', url: 'Machine_Preacher_Curls/1.jpg' }
   ],
   EX12: [{ label: '1. Cố định hông', url: 'Ab_Crunch_Machine/0.jpg' }, { label: '2. Cuộn đốt sống ngực ép bụng', url: 'Ab_Crunch_Machine/1.jpg' }],
   EX13: [{ label: '1. Úp sấp lòng bàn tay', url: 'Seated_Dumbbell_Palms-Down_Wrist_Curl/0.jpg' }, { label: '2. Vểnh mu bàn tay lên', url: 'Seated_Dumbbell_Palms-Down_Wrist_Curl/1.jpg' }]
@@ -1124,15 +1172,37 @@ function openDetailSheet(exId) {
   hapticTap(12);
 
   const stats = getExerciseStats(ex);
+  const realPhotos = REAL_GYM_PHOTOS[ex.id] || [];
+  const realPhotosHtml = realPhotos.length > 0 ? `
+    <div style="margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.03em;color:var(--green);margin-bottom:6px;text-transform:uppercase;">
+        Máy thật tại PLUS GYM · Tầng ${ex.floor}
+      </div>
+      <div style="display:grid;grid-template-columns:${realPhotos.length === 1 ? '1fr' : '1fr 1fr'};gap:8px;">
+        ${realPhotos.map(rp => `
+          <div style="background:var(--bg-tertiary);border-radius:12px;overflow:hidden;border:1px solid rgba(48, 209, 88, 0.35);">
+            <img src="${rp.src}" alt="${rp.label}" loading="lazy" style="width:100%;height:${realPhotos.length === 1 ? '186px' : '148px'};object-fit:cover;display:block;">
+            <div style="padding:6px 8px;font-size:11px;font-weight:600;color:var(--label-primary);text-align:center;line-height:1.35;">${rp.label}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
   const photos = EX_PHOTOS[ex.id] || [];
   const photosHtml = photos.length > 0 ? `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-      ${photos.map(p => `
-        <div style="background:var(--bg-tertiary);border-radius:12px;overflow:hidden;border:1px solid var(--separator);">
-          <img src="${EX_IMG_BASE}${p.url}" alt="${p.label}" loading="lazy" style="width:100%;height:132px;object-fit:cover;display:block;">
-          <div style="padding:6px 8px;font-size:11px;font-weight:600;color:var(--label-primary);text-align:center;">${p.label}</div>
-        </div>
-      `).join('')}
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.02em;color:var(--label-secondary);margin-bottom:6px;text-transform:uppercase;">
+        Biên độ & Tư thế chuẩn
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        ${photos.map(p => `
+          <div style="background:var(--bg-tertiary);border-radius:12px;overflow:hidden;border:1px solid var(--separator);">
+            <img src="${EX_IMG_BASE}${p.url}" alt="${p.label}" loading="lazy" style="width:100%;height:124px;object-fit:cover;display:block;">
+            <div style="padding:6px 8px;font-size:11px;font-weight:600;color:var(--label-primary);text-align:center;">${p.label}</div>
+          </div>
+        `).join('')}
+      </div>
     </div>
   ` : '';
   const body = document.getElementById('sheetBody');
@@ -1147,6 +1217,7 @@ function openDetailSheet(exId) {
       <div style="font-size:13px;color:var(--label-secondary);margin-top:4px;">${ex.equip}</div>
     </div>
 
+    ${realPhotosHtml}
     ${photosHtml}
 
     <div class="ios-list" style="background:var(--bg-tertiary);margin-bottom:14px;">
@@ -1742,8 +1813,8 @@ function renderTodayTab() {
         ? 'Chặng 1 · Tầng 2 (Khởi động & Tập máy Tầng 2 trước)'
         : 'Chặng 2 · Đi xuống Tầng 1 (Tập xong về luôn)';
       const floorMeta = currentFloor === 2
-        ? (state.workoutMode === 'ESSENTIAL_7' ? '3 trạm · 7 hiệp · ~14p' : state.workoutMode === 'WORKOUT_A' ? '2 bài · ~12 phút' : '3 bài · ~16 phút')
-        : (state.workoutMode === 'ESSENTIAL_7' ? '4 trạm + Cổ tay · 11 hiệp · ~22p' : state.workoutMode === 'WORKOUT_A' ? '5 bài · ~30 phút' : '4 bài · ~26 phút');
+        ? (state.workoutMode === 'ESSENTIAL_7' ? '3 trạm · 7 hiệp · ~14p' : state.workoutMode === 'WORKOUT_A' ? '2 bài · ~12 phút' : '4 bài · ~21 phút')
+        : (state.workoutMode === 'ESSENTIAL_7' ? '4 trạm + Cổ tay · 11 hiệp · ~22p' : state.workoutMode === 'WORKOUT_A' ? '5 bài · ~30 phút' : '3 bài · ~20 phút');
       listHtml += `
         <div class="section-header">
           <span class="section-title">${floorTitle}</span>
@@ -2272,16 +2343,20 @@ function renderCardioBodyTab() {
 }
 
 function renderLibraryTab() {
-  const listHtml = EXERCISES.map(ex => `
-    <div class="ios-row" onclick="openDetailSheet('${ex.id}')" style="cursor:pointer;">
-      <div style="flex:1;">
-        <div style="font-size:11px;font-weight:600;color:var(--green);">TẦNG ${ex.floor} · ${ex.id}</div>
-        <div style="font-size:15px;font-weight:600;margin-top:1px;">${ex.name}</div>
-        <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;">${ex.equip}</div>
+  const listHtml = EXERCISES.map(ex => {
+    const thumb = (REAL_GYM_PHOTOS[ex.id] && REAL_GYM_PHOTOS[ex.id][0]?.src) || '';
+    return `
+      <div class="ios-row" onclick="openDetailSheet('${ex.id}')" style="cursor:pointer;gap:12px;">
+        ${thumb ? `<img src="${thumb}" alt="${ex.title}" loading="lazy" style="width:46px;height:46px;border-radius:10px;object-fit:cover;flex-shrink:0;border:0.5px solid var(--glass-edge);">` : ''}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;font-weight:600;color:var(--green);">TẦNG ${ex.floor} · ${ex.id}</div>
+          <div style="font-size:15px;font-weight:600;margin-top:1px;">${ex.name}</div>
+          <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;">${ex.equip}</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--label-tertiary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--label-tertiary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   return `
     <div class="apple-card">
@@ -2432,7 +2507,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=20', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=21', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
