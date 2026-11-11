@@ -2,6 +2,7 @@
 const SHEET_ID = '1pPayEETE_yoW9lzxYy3Qdd2GV5yEqp1uQZq285eK-wQ';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?usp=sharing`;
 const STORAGE_KEY = 'HA_GYM_PRO_STATE_V2';
+const DEFAULT_WEBHOOK_URL = '';
 
 // ============================================================================
 // 1. APPLE FLUID SPRING ENGINE (Damping Ratio + Response, Velocity-Preserving)
@@ -466,11 +467,37 @@ const DEFAULT_BODY_TARGETS_3M = {
   stepGoal: 8000
 };
 
+function formatDateVN(d = new Date()) {
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function normalizeDateVN(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [yyyy, mm, dd] = s.split('-');
+    return `${dd}/${mm}/${yyyy}`;
+  }
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m) {
+    return `${m[1].padStart(2, '0')}/${m[2].padStart(2, '0')}/${m[3]}`;
+  }
+  return s;
+}
+
+function getTodayDateKey() {
+  return formatDateVN(new Date());
+}
+
 let state = {
   activeTab: 'today',
   workoutMode: 'ESSENTIAL_7', // 'ESSENTIAL_7' | 'WORKOUT_A' | 'WORKOUT_B'
   userManuallySelectedMode: false,
   warmupDone: false,
+  todaySessionDate: '',
   todaySession: {},
   dailyActivity: {},
   logs: [...INITIAL_LOGS],
@@ -478,27 +505,33 @@ let state = {
   cardioLogs: [...INITIAL_CARDIO_LOGS],
   exTargets3M: { ...DEFAULT_EX_TARGETS_3M },
   bodyTargets3M: { ...DEFAULT_BODY_TARGETS_3M },
-  webhookUrl: '',
+  webhookUrl: DEFAULT_WEBHOOK_URL,
   lastSync: 'Đã đồng bộ Sheet',
   libFilter: 'ALL'
 };
 
 // Analyze last completed workout session from logs & recommend Unified Essential 7 routine
 function getLastSessionInfo() {
-  if (!state.logs || state.logs.length === 0) {
+  const todayKey = getTodayDateKey();
+  const todayLogs = (state.logs || []).filter(l => normalizeDateVN(l.date) === todayKey);
+  const pastLogs = (state.logs || []).filter(l => normalizeDateVN(l.date) !== todayKey);
+  const sourceLogs = pastLogs.length > 0 ? pastLogs : (state.logs || []);
+
+  if (sourceLogs.length === 0) {
     return {
       lastDate: 'Chưa có',
       lastLabel: 'Chưa tập',
       lastCode: 'NONE',
       exCount: 0,
+      todaySavedCount: todayLogs.length,
       totalVol: 0,
       nextMode: 'ESSENTIAL_7',
       nextLabel: '7 Bài Chuẩn · 18 Hiệp (Tầng 2 → Tầng 1)'
     };
   }
-  const lastEntry = state.logs[state.logs.length - 1];
-  const lastDate = lastEntry.date;
-  const sameDayLogs = state.logs.filter(l => l.date === lastDate);
+  const lastEntry = sourceLogs[sourceLogs.length - 1];
+  const lastDate = normalizeDateVN(lastEntry.date);
+  const sameDayLogs = sourceLogs.filter(l => normalizeDateVN(l.date) === lastDate);
   const totalVol = sameDayLogs.reduce((acc, l) => acc + (Number(l.volume) || 0), 0);
 
   let countA = 0;
@@ -531,6 +564,7 @@ function getLastSessionInfo() {
     lastLabel,
     lastCode,
     exCount: sameDayLogs.length,
+    todaySavedCount: todayLogs.length,
     totalVol,
     nextMode: 'ESSENTIAL_7',
     nextLabel: '7 Bài Chuẩn · 18 Hiệp (Tầng 2 → Tầng 1)'
@@ -545,6 +579,7 @@ function loadState() {
       state = {
         ...state,
         ...parsed,
+        webhookUrl: (parsed.webhookUrl && String(parsed.webhookUrl).trim()) || DEFAULT_WEBHOOK_URL,
         logs: parsed.logs && parsed.logs.length >= INITIAL_LOGS.length ? parsed.logs : [...INITIAL_LOGS],
         body: parsed.body && parsed.body.length >= INITIAL_BODY.length ? parsed.body : [...INITIAL_BODY],
         cardioLogs: parsed.cardioLogs && parsed.cardioLogs.length ? parsed.cardioLogs : [...INITIAL_CARDIO_LOGS],
@@ -558,8 +593,29 @@ function loadState() {
   if (!state.userManuallySelectedMode || state.workoutMode === '2FLOOR') {
     state.workoutMode = 'ESSENTIAL_7';
   }
+
+  const todayKey = getTodayDateKey();
+  const prevDateKey = normalizeDateVN(state.todaySessionDate);
+  if (!prevDateKey) {
+    state.todaySessionDate = todayKey;
+    // Restore checkmarks if today's workout was already committed earlier, then rescue any checked sets
+    hydrateTodayFromLogs(todayKey);
+    syncTodaySessionToLogs(todayKey);
+  } else if (prevDateKey !== todayKey) {
+    // New calendar day: commit previous day's checked sets, then start fresh for today
+    syncTodaySessionToLogs(prevDateKey);
+    state.todaySession = {};
+    state.todaySessionDate = todayKey;
+    hydrateTodayFromLogs(todayKey);
+  } else {
+    state.todaySessionDate = todayKey;
+    hydrateTodayFromLogs(todayKey);
+    syncTodaySessionToLogs(todayKey);
+  }
+
   initTodayDefaults();
   getTodayActivity();
+  saveState();
 }
 
 function saveState() {
@@ -568,8 +624,13 @@ function saveState() {
   } catch (e) {}
 }
 
-function getExerciseStats(ex) {
-  const matches = state.logs.filter(l => l.exercise === ex.name && Number(l.weight) > 0);
+function getExerciseStats(ex, options = {}) {
+  const todayKey = getTodayDateKey();
+  const matches = state.logs.filter(l =>
+    l.exercise === ex.name &&
+    Number(l.weight) > 0 &&
+    (!options.excludeToday || normalizeDateVN(l.date) !== todayKey)
+  );
   if (matches.length === 0) {
     const defaultStart = ex.id === 'EX05' ? 20 : ex.id === 'EX07' ? 35 : 10;
     return {
@@ -654,7 +715,7 @@ function getTargetSetsCount(ex) {
 
 function initTodayDefaults() {
   EXERCISES.forEach(ex => {
-    const stats = getExerciseStats(ex);
+    const stats = getExerciseStats(ex, { excludeToday: true });
     const numSets = getTargetSetsCount(ex);
     const defaultRep = Math.min(ex.repMax, Math.max(ex.repMin, stats.recReps || ex.repMax));
     if (!state.todaySession[ex.id]) {
@@ -679,6 +740,163 @@ function initTodayDefaults() {
       });
     }
   });
+}
+
+let cloudSyncTimer = null;
+
+// Restore green checkmarks & weights on Today tab if logs already contain today's workout (from Sheet or earlier Save)
+function hydrateTodayFromLogs(targetDate) {
+  const normTarget = normalizeDateVN(targetDate);
+  const dayLogs = (state.logs || []).filter(l => normalizeDateVN(l.date) === normTarget);
+  if (dayLogs.length === 0) return;
+
+  dayLogs.forEach(l => {
+    const ex = EXERCISES.find(e => e.name === l.exercise);
+    if (!ex) return;
+    const numSets = getTargetSetsCount(ex);
+    const cur = state.todaySession[ex.id];
+    const anyDone = cur && Array.isArray(cur.sets) && cur.sets.some(st => st.done);
+    if (anyDone) return;
+
+    let repParts = [];
+    const noteStr = String(l.note || '');
+    if (noteStr.includes('Hiệp:')) {
+      repParts = noteStr.replace('Hiệp:', '').trim().split('/').map(n => parseInt(n, 10)).filter(n => !isNaN(n) && n > 0);
+    }
+    if (repParts.length === 0) {
+      const total = Number(l.reps) || ex.repMax;
+      if (total <= ex.repMax + 2) {
+        repParts = [total];
+      } else {
+        const perSet = Math.max(1, Math.round(total / numSets));
+        repParts = Array.from({ length: numSets }, () => perSet);
+      }
+    }
+
+    const setsArr = [];
+    const totalSlots = Math.max(3, numSets, repParts.length);
+    for (let i = 0; i < totalSlots; i++) {
+      if (i < repParts.length) {
+        setsArr.push({ reps: repParts[i], done: true });
+      } else {
+        setsArr.push({ reps: ex.repMax, done: false });
+      }
+    }
+
+    state.todaySession[ex.id] = {
+      weight: Number(l.weight) || ex.inc,
+      sets: setsArr,
+      rir: l.rir || ex.rir
+    };
+  });
+}
+
+// Real-time auto-commit: Every checked set (✓) immediately updates state.logs (Progress & 3M Target)
+function syncTodaySessionToLogs(dateOverride = null) {
+  const targetDate = normalizeDateVN(dateOverride || state.todaySessionDate || getTodayDateKey());
+  const workoutLabel = state.workoutMode === 'ESSENTIAL_7'
+    ? '7 Bài Chuẩn (18 Hiệp)'
+    : state.workoutMode === 'WORKOUT_A'
+      ? 'Workout A'
+      : 'Workout B';
+
+  const baseLogCount = state.logs.filter(l => normalizeDateVN(l.date) !== targetDate).length;
+  const weekNum = Math.max(6, Math.ceil((baseLogCount + 1) / 6));
+
+  EXERCISES.forEach(ex => {
+    const s = state.todaySession[ex.id];
+    const numSets = getTargetSetsCount(ex);
+    const activeSets = s && Array.isArray(s.sets)
+      ? s.sets.slice(0, numSets).filter(st => st.done && Number(st.reps) > 0)
+      : [];
+
+    const existingIdx = state.logs.findIndex(l => normalizeDateVN(l.date) === targetDate && l.exercise === ex.name);
+
+    if (activeSets.length > 0) {
+      const totalReps = activeSets.reduce((acc, st) => acc + Number(st.reps), 0);
+      const w = Number(s.weight) || 0;
+      const vol = w * totalReps;
+      const allHitMax = activeSets.length >= numSets && activeSets.every(st => Number(st.reps) >= ex.repMax);
+      const nextW = allHitMax ? w + ex.inc : w;
+
+      const rowObj = {
+        date: targetDate,
+        week: weekNum,
+        workout: workoutLabel,
+        exercise: ex.name,
+        weight: w,
+        reps: totalReps,
+        volume: vol,
+        rir: s.rir || ex.rir,
+        nextWeight: nextW,
+        note: `Hiệp: ${activeSets.map(x => x.reps).join('/')}`,
+        isLocal: true,
+        autoSynced: true
+      };
+
+      if (existingIdx >= 0) {
+        state.logs[existingIdx] = rowObj;
+      } else {
+        state.logs.push(rowObj);
+      }
+    } else if (existingIdx >= 0 && state.logs[existingIdx].autoSynced) {
+      // Only remove if user unchecked all sets of an auto-synced row today
+      state.logs.splice(existingIdx, 1);
+    }
+  });
+}
+
+// CORS-safe Google Apps Script POST (uses text/plain to bypass preflight OPTIONS & prevent header stripping)
+async function postWebhookPayload(payload) {
+  if (!state.webhookUrl) return false;
+  const bodyStr = JSON.stringify(payload);
+  try {
+    await fetch(state.webhookUrl, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: bodyStr
+    });
+    return true;
+  } catch (err) {
+    try {
+      await fetch(state.webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: bodyStr
+      });
+      return true;
+    } catch (e2) {
+      return false;
+    }
+  }
+}
+
+async function syncLocalLogsToCloud(silent = true) {
+  if (!state.webhookUrl) return false;
+  const todayStr = getTodayDateKey();
+  const rowsToPush = state.logs.filter(l => l.isLocal || normalizeDateVN(l.date) === todayStr);
+  if (rowsToPush.length === 0) return false;
+
+  const ok = await postWebhookPayload({ action: 'upsertWorkout', rows: rowsToPush });
+  if (ok) {
+    const now = new Date();
+    state.lastSync = `Đã ghi Sheet ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const syncSub = document.getElementById('syncStatusText');
+    if (syncSub) syncSub.textContent = state.lastSync;
+    saveState();
+    if (!silent) showToast(`✓ Đã đồng bộ ${rowsToPush.length} bài lên Google Sheet`);
+  }
+  return ok;
+}
+
+function scheduleCloudSync() {
+  if (!state.webhookUrl) return;
+  if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(() => {
+    syncLocalLogsToCloud(true);
+  }, 2000);
 }
 
 function getTodayExercises() {
@@ -712,10 +930,6 @@ function getSlotLabel(ex) {
 // ============================================================================
 let pedometerActive = false;
 let lastStepTime = 0;
-
-function getTodayDateKey() {
-  return new Date().toLocaleDateString('vi-VN');
-}
 
 function getTodayActivity() {
   const key = getTodayDateKey();
@@ -780,7 +994,7 @@ function calculateEnergyStats() {
 
   exList.forEach(ex => {
     const numSets = getTargetSetsCount(ex);
-    const stats = getExerciseStats(ex);
+    const stats = getExerciseStats(ex, { excludeToday: true });
     const s = state.todaySession[ex.id] || { weight: stats.recWeight, sets: [] };
     const info = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW);
     setsEstKcal += info.estKcal;
@@ -788,7 +1002,7 @@ function calculateEnergyStats() {
   });
 
   // Also check if user already saved a workout earlier today in state.logs
-  const savedTodayLogs = state.logs.filter(l => l.date === todayKey && l.isLocal);
+  const savedTodayLogs = state.logs.filter(l => normalizeDateVN(l.date) === todayKey);
   let savedLogKcal = 0;
   if (savedTodayLogs.length > 0 && setsBurnedKcal === 0) {
     savedTodayLogs.forEach(l => {
@@ -1491,7 +1705,7 @@ async function syncFromGoogleSheet(silent = false) {
         const reps = parseInt(String(r[5]).replace(/,/g, ''), 10) || 0;
         if (w <= 0) continue;
         sheetLogs.push({
-          date: r[0] || '',
+          date: normalizeDateVN(r[0] || ''),
           week: r[1] || '',
           workout: r[2] || '',
           exercise: r[3] || '',
@@ -1504,9 +1718,24 @@ async function syncFromGoogleSheet(silent = false) {
         });
       }
       if (sheetLogs.length > 0) {
-        const keySet = new Set(sheetLogs.map(l => `${l.date}|${l.exercise}|${l.weight}|${l.reps}`));
-        const localExtra = state.logs.filter(l => l.isLocal && !keySet.has(`${l.date}|${l.exercise}|${l.weight}|${l.reps}`));
-        state.logs = [...sheetLogs, ...localExtra];
+        const todayKey = getTodayDateKey();
+        const merged = [...sheetLogs];
+        const localRows = state.logs.filter(l => l.isLocal);
+        localRows.forEach(loc => {
+          const normLocDate = normalizeDateVN(loc.date);
+          const idx = merged.findIndex(s => normalizeDateVN(s.date) === normLocDate && s.exercise === loc.exercise);
+          if (idx === -1) {
+            merged.push(loc);
+          } else if (normLocDate === todayKey && (Number(loc.reps) > Number(merged[idx].reps) || Number(loc.weight) !== Number(merged[idx].weight))) {
+            merged[idx] = loc;
+          }
+        });
+        state.logs = merged;
+        hydrateTodayFromLogs(todayKey);
+        syncTodaySessionToLogs(todayKey);
+        if (state.webhookUrl && state.logs.some(l => l.isLocal)) {
+          scheduleCloudSync();
+        }
       }
     }
 
@@ -1591,15 +1820,19 @@ function stepWeight(exId, delta) {
   const s = state.todaySession[exId];
   if (!s) return;
   s.weight = Math.max(0, Number((Number(s.weight || 0) + delta).toFixed(1)));
+  syncTodaySessionToLogs();
   saveState();
   render();
+  scheduleCloudSync();
 }
 
 function updateWeightInput(exId, val) {
   const s = state.todaySession[exId];
   if (!s) return;
   s.weight = Math.max(0, parseFloat(val) || 0);
+  syncTodaySessionToLogs();
   saveState();
+  scheduleCloudSync();
 }
 
 function applyRecWeight(exId, recVal) {
@@ -1607,8 +1840,10 @@ function applyRecWeight(exId, recVal) {
   const s = state.todaySession[exId];
   if (!s) return;
   s.weight = recVal;
+  syncTodaySessionToLogs();
   saveState();
   render();
+  scheduleCloudSync();
   showToast(`Đã đặt mức đề xuất ${recVal} kg`);
 }
 
@@ -1616,7 +1851,9 @@ function updateSetReps(exId, setIdx, val) {
   const s = state.todaySession[exId];
   if (!s || !s.sets[setIdx]) return;
   s.sets[setIdx].reps = Math.max(0, parseInt(val, 10) || 0);
+  syncTodaySessionToLogs();
   saveState();
+  scheduleCloudSync();
 }
 
 function toggleSetDone(exId, setIdx) {
@@ -1624,13 +1861,18 @@ function toggleSetDone(exId, setIdx) {
   const s = state.todaySession[exId];
   if (!ex || !s || !s.sets[setIdx]) return;
 
+  state.todaySessionDate = getTodayDateKey();
   const targetSet = s.sets[setIdx];
   targetSet.done = !targetSet.done;
   if (targetSet.done && (!targetSet.reps || targetSet.reps <= 0)) {
     targetSet.reps = ex.repMax;
   }
+
+  // Auto-save live to state.logs immediately upon ticking ✓
+  syncTodaySessionToLogs();
   saveState();
   render();
+  scheduleCloudSync();
 
   if (targetSet.done) {
     startRestTimer(ex.restSec, `${ex.title} · Hiệp ${setIdx + 1}`);
@@ -1640,79 +1882,62 @@ function toggleSetDone(exId, setIdx) {
 }
 
 async function saveTodayWorkout() {
-  const list = getTodayExercises();
-  const todayStr = new Date().toLocaleDateString('vi-VN');
-  const newRows = [];
+  const todayStr = getTodayDateKey();
+  state.todaySessionDate = todayStr;
+  syncTodaySessionToLogs(todayStr);
 
-  list.forEach(ex => {
-    const s = state.todaySession[ex.id];
-    if (!s) return;
-    const numSets = getTargetSetsCount(ex);
-    const activeSets = s.sets.slice(0, numSets).filter(st => st.done && Number(st.reps) > 0);
-    if (activeSets.length === 0) return;
-
-    const totalReps = activeSets.reduce((acc, st) => acc + Number(st.reps), 0);
-    const w = Number(s.weight) || 0;
-    const vol = w * totalReps;
-    // Double Progression: Only step up weight (+5kg machine / +2.5kg DB) when all sets hit repMax!
-    const allHitMax = activeSets.length >= numSets && activeSets.every(st => Number(st.reps) >= ex.repMax);
-    const nextW = allHitMax ? w + ex.inc : w;
-
-    newRows.push({
-      date: todayStr,
-      week: Math.max(6, Math.ceil((state.logs.length + 1) / 6)),
-      workout: state.workoutMode === 'ESSENTIAL_7' ? '7 Bài Chuẩn (18 Hiệp)' : state.workoutMode === 'WORKOUT_A' ? 'Workout A' : 'Workout B',
-      exercise: ex.name,
-      weight: w,
-      reps: totalReps,
-      volume: vol,
-      rir: s.rir || ex.rir,
-      nextWeight: nextW,
-      note: `Hiệp: ${activeSets.map(x => x.reps).join('/')}`,
-      isLocal: true
-    });
-  });
-
-  if (newRows.length === 0) {
-    showToast('Chạm vòng tròn tích ít nhất 1 hiệp để lưu');
+  const todayRows = state.logs.filter(l => normalizeDateVN(l.date) === todayStr);
+  if (todayRows.length === 0) {
+    showToast('Chạm vòng tròn ✓ ít nhất 1 hiệp để lưu');
     return;
   }
 
   playBell();
-  state.logs.push(...newRows);
-  newRows.forEach(r => {
-    const ex = EXERCISES.find(e => e.name === r.exercise);
-    if (ex && state.todaySession[ex.id]) {
-      state.todaySession[ex.id].weight = r.nextWeight;
-      state.todaySession[ex.id].sets.forEach(st => { st.done = false; });
-    }
-  });
-  initTodayDefaults();
   saveState();
   render();
 
   if (state.webhookUrl) {
-    try {
-      await fetch(state.webhookUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'appendWorkout', rows: newRows })
-      });
-      showToast(`Đã lưu ${newRows.length} bài & đồng bộ Sheet`);
+    const ok = await syncLocalLogsToCloud(true);
+    if (ok) {
+      render();
+      showToast(`✓ Đã lưu ${todayRows.length} bài & đồng bộ lên Google Sheet`);
       return;
-    } catch (e) {}
+    }
   }
-  showToast(`Đã lưu ${newRows.length} bài vào Nhật ký`);
+
+  // Fallback when Apps Script URL is not yet configured: auto-copy TSV rows for 1-paste into Sheet
+  try {
+    const tsv = todayRows.map(r => [
+      r.date, r.week, r.workout, r.exercise, r.weight, r.reps, r.volume, r.rir, r.nextWeight, r.note || ''
+    ].join('\t')).join('\n');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(tsv);
+      showToast(`✓ Đã lưu ${todayRows.length} bài & chép sẵn dòng để dán vào Sheet`);
+      return;
+    }
+  } catch (e) {}
+  showToast(`✓ Đã lưu ${todayRows.length} bài vào Tiến độ trên máy`);
 }
 
 function copyLogsTSV() {
-  const recent = state.logs.slice(-12);
-  const tsv = recent.map(r => [
-    r.date, r.week, r.workout, r.exercise, r.weight, r.reps, r.volume, r.rir, r.nextWeight, r.note || ''
+  syncTodaySessionToLogs();
+  saveState();
+  const localRows = state.logs.filter(l => l.isLocal);
+  let targetRows = localRows;
+  if (targetRows.length === 0 && state.logs.length > 0) {
+    const latestDate = normalizeDateVN(state.logs[state.logs.length - 1].date);
+    targetRows = state.logs.filter(l => normalizeDateVN(l.date) === latestDate);
+  }
+  if (targetRows.length === 0) {
+    showToast('Chưa có dòng tập nào để sao chép');
+    return;
+  }
+  const tsv = targetRows.map(r => [
+    normalizeDateVN(r.date), r.week, r.workout, r.exercise, r.weight, r.reps, r.volume, r.rir, r.nextWeight, r.note || ''
   ].join('\t')).join('\n');
+  const dateTag = normalizeDateVN(targetRows[targetRows.length - 1].date);
   navigator.clipboard.writeText(tsv).then(() => {
-    showToast('Đã sao chép định dạng bảng tính');
+    showToast(`Đã chép ${targetRows.length} bài (${dateTag}) — Dán vào ô A cuối Sheet`);
   });
 }
 
@@ -1723,7 +1948,7 @@ async function submitBodyMeasurement() {
     return;
   }
   const entry = {
-    date: new Date().toLocaleDateString('vi-VN'),
+    date: getTodayDateKey(),
     weight: w,
     waist: document.getElementById('bmWaist')?.value || '',
     forearm: document.getElementById('bmForearm')?.value || '',
@@ -1735,14 +1960,7 @@ async function submitBodyMeasurement() {
   render();
 
   if (state.webhookUrl) {
-    try {
-      await fetch(state.webhookUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'appendBody', data: entry })
-      });
-    } catch (e) {}
+    postWebhookPayload({ action: 'appendBody', data: entry });
   }
   showToast(`Đã lưu cân nặng ${w} kg`);
 }
@@ -1754,7 +1972,7 @@ async function submitCardioLog() {
   const days = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
   const now = new Date();
   const entry = {
-    date: now.toLocaleDateString('vi-VN'),
+    date: formatDateVN(now),
     day: days[now.getDay()],
     week,
     duration: dur,
@@ -1766,6 +1984,21 @@ async function submitCardioLog() {
   state.cardioLogs.push(entry);
   saveState();
   render();
+  if (state.webhookUrl) {
+    postWebhookPayload({
+      action: 'appendCardio',
+      data: {
+        date: entry.date,
+        dayLabel: entry.day,
+        weekLabel: entry.week,
+        duration: entry.duration,
+        distance: entry.dist,
+        pace: (entry.duration / Math.max(0.1, entry.dist)).toFixed(1),
+        hr: entry.hr,
+        note: ''
+      }
+    });
+  }
   showToast(`Đã lưu buổi chạy ${dist} km`);
 }
 
@@ -1823,7 +2056,7 @@ function renderTodayTab() {
       `;
     }
 
-    const stats = getExerciseStats(ex);
+    const stats = getExerciseStats(ex, { excludeToday: true });
     const numSets = getTargetSetsCount(ex);
     const s = state.todaySession[ex.id] || { weight: stats.recWeight, sets: [] };
     const exCal = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW);
@@ -1894,8 +2127,8 @@ function renderTodayTab() {
   return `
     <!-- 1-Line Subtle Session Context -->
     <div class="session-caption tabular" onclick="setWorkoutMode('ESSENTIAL_7')" style="cursor:pointer;">
-      <span>Trước: ${lastSession.lastLabel} (${lastSession.lastDate})</span>
-      <span>Chế độ: <strong>7 Bài Chuẩn · 18 Hiệp (+5kg/tuần)</strong> ${state.workoutMode === 'ESSENTIAL_7' ? '✓' : '→'}</span>
+      <span>${lastSession.todaySavedCount > 0 ? `<strong style="color:var(--green);">Hôm nay: Đã lưu ${lastSession.todaySavedCount} bài ✓</strong> · Trước: ${lastSession.lastDate}` : `Trước: ${lastSession.lastLabel} (${lastSession.lastDate})`}</span>
+      <span>Chế độ: <strong>7 Bài Chuẩn · 18 Hiệp</strong> ${state.workoutMode === 'ESSENTIAL_7' ? '✓' : '→'}</span>
     </div>
 
     <!-- Sliding Segmented Control (7 Bài Chuẩn | Buổi A | Buổi B) -->
@@ -2027,18 +2260,20 @@ function renderProgressTab() {
     `;
   }).join('');
 
-  // Group logs by date to show Session-by-Session A/B history
+  // Group logs by date to show Session-by-Session history
   const sessionMap = new Map();
   state.logs.forEach(l => {
-    if (!sessionMap.has(l.date)) {
-      sessionMap.set(l.date, { date: l.date, countA: 0, countB: 0, full: false, exCount: 0, vol: 0, lastTag: l.workout });
+    const dKey = normalizeDateVN(l.date);
+    if (!sessionMap.has(dKey)) {
+      sessionMap.set(dKey, { date: dKey, countA: 0, countB: 0, e7: false, full: false, exCount: 0, vol: 0, lastTag: l.workout });
     }
-    const item = sessionMap.get(l.date);
+    const item = sessionMap.get(dKey);
     item.exCount++;
     item.vol += Number(l.volume) || 0;
     item.lastTag = l.workout;
     const wStr = String(l.workout || '').toUpperCase();
-    if (wStr.includes('2 TẦNG') || wStr.includes('FULL')) item.full = true;
+    if (wStr.includes('7 BÀI')) item.e7 = true;
+    else if (wStr.includes('2 TẦNG') || wStr.includes('FULL')) item.full = true;
     else if (wStr.includes('B')) item.countB++;
     else if (wStr.includes('A')) item.countA++;
   });
@@ -2046,7 +2281,10 @@ function renderProgressTab() {
   const sessionRows = Array.from(sessionMap.values()).reverse().map(s => {
     let label = 'Buổi A';
     let color = 'var(--green)';
-    if (s.full && s.exCount >= 8) {
+    if (s.e7) {
+      label = '7 Bài Chuẩn';
+      color = 'var(--blue)';
+    } else if (s.full && s.exCount >= 7) {
       label = 'Gộp A+B (2 Tầng)';
       color = 'var(--blue)';
     } else if (String(s.lastTag || '').toUpperCase().includes('B') || s.countB > s.countA) {
@@ -2097,7 +2335,7 @@ function renderProgressTab() {
     </div>
 
     <div class="section-header">
-      <span class="section-title">Lịch sử chu kỳ Buổi A / Buổi B</span>
+      <span class="section-title">Nhật ký các buổi tập</span>
       <span class="section-meta">${sessionMap.size} buổi</span>
     </div>
     <div class="ios-list">
@@ -2403,18 +2641,23 @@ function renderLibraryTab() {
   `;
 }
 
-function saveWebhookUrl() {
+async function saveWebhookUrl() {
   state.webhookUrl = document.getElementById('cfgWebhook')?.value?.trim() || '';
   saveState();
-  showToast('Đã lưu kết nối Google Sheet');
+  if (state.webhookUrl) {
+    showToast('Đã lưu kết nối — Đang đẩy lịch sử tập lên Sheet...');
+    await syncLocalLogsToCloud(false);
+  } else {
+    showToast('Đã xóa URL kết nối');
+  }
 }
 
 async function copyAppsScriptCode() {
   try {
-    const res = await fetch('./google-apps-script.gs');
+    const res = await fetch('./google-apps-script.gs?v=22', { cache: 'no-store' });
     const code = await res.text();
     await navigator.clipboard.writeText(code);
-    showToast('Đã sao chép mã Google Apps Script');
+    showToast('Đã sao chép mã Google Apps Script v22');
   } catch (e) {
     showToast('Mở file google-apps-script.gs để chép mã');
   }
@@ -2507,7 +2750,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=21', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=22', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
