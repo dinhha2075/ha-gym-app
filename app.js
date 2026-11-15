@@ -310,6 +310,7 @@ const EXERCISES = [
     setsB: 3,
     repMin: 12,
     repMax: 15,
+    wUnit: 'kg/tay',
     rir: '1–2 RIR',
     restSec: 60,
     inc: 2.5,
@@ -381,6 +382,7 @@ const EXERCISES = [
     sets: 2,
     repMin: 12,
     repMax: 20,
+    wUnit: 'kg/tay',
     rir: '0–1 RIR',
     restSec: 45,
     inc: 2.5,
@@ -406,6 +408,7 @@ const EXERCISES = [
     repMin: 30,
     repMax: 45,
     unit: 'giây',
+    wUnit: 'kg/tay',
     rir: 'Siết chặt',
     restSec: 60,
     inc: 2.5,
@@ -663,6 +666,7 @@ function saveState() {
 
 function getExerciseStats(ex, options = {}) {
   const unitLbl = ex.unit || 'lần';
+  const wUnit = ex.wUnit || 'kg';
   const todayKey = getTodayDateKey();
   const matches = state.logs.filter(l =>
     l.exercise === ex.name &&
@@ -678,7 +682,7 @@ function getExerciseStats(ex, options = {}) {
       lastReps: 0,
       recWeight: defaultStart,
       recReps: ex.unit === 'giây' ? ex.repMax : ex.repMin,
-      recHint: `Đề xuất: ${defaultStart} kg × ${ex.repMin}–${ex.repMax} ${unitLbl}`,
+      recHint: `Đề xuất: ${defaultStart} ${wUnit} × ${ex.repMin}–${ex.repMax} ${unitLbl}`,
       sessions: 0,
       lastDate: '—',
       status: 'Mới'
@@ -715,17 +719,17 @@ function getExerciseStats(ex, options = {}) {
   if (lastAvgReps >= ex.repMax) {
     recWeight = lastW + ex.inc;
     recReps = ex.repMin;
-    recHint = `Đủ ${ex.repMax} ${unitLbl} → Lên ${recWeight} kg × ${ex.repMin} ${unitLbl}`;
+    recHint = `Đủ ${ex.repMax} ${unitLbl} → Lên ${recWeight} ${wUnit} × ${ex.repMin} ${unitLbl}`;
   } else {
     recWeight = lastW;
     const stepRep = ex.unit === 'giây' ? 5 : ((ex.repMax - ex.repMin >= 5 && lastAvgReps >= 12) ? 3 : 2);
     recReps = Math.min(ex.repMax, Math.max(ex.repMin, lastAvgReps + stepRep));
-    recHint = `Giữ ${lastW} kg · Đẩy lên ${recReps} ${unitLbl}`;
+    recHint = `Giữ ${lastW} ${wUnit} · Đẩy lên ${recReps} ${unitLbl}`;
   }
 
   let status = `Ép lên ${ex.repMax} ${unitLbl}`;
   if (recWeight > lastW) {
-    status = `Lên tạ → ${recWeight} kg`;
+    status = `Lên tạ → ${recWeight} ${wUnit}`;
   } else if (lastW > firstW || Number(last.volume) > Number(first.volume)) {
     status = 'Tăng tải';
   }
@@ -1485,7 +1489,7 @@ function openDetailSheet(exId) {
       </div>
       <div class="ios-row">
         <span style="color:var(--label-secondary);font-size:14px;">Kỷ lục cá nhân (PR)</span>
-        <span style="font-weight:600;font-size:14px;color:var(--green);" class="tabular">${stats.prWeight > 0 ? `${stats.prWeight} kg` : 'Chưa ghi nhận'}</span>
+        <span style="font-weight:600;font-size:14px;color:var(--green);" class="tabular">${stats.prWeight > 0 ? `${stats.prWeight} ${ex.wUnit || 'kg'}` : 'Chưa ghi nhận'}</span>
       </div>
       <div class="ios-row">
         <span style="color:var(--label-secondary);font-size:14px;">Bài thay thế</span>
@@ -1883,12 +1887,14 @@ function applyRecWeight(exId, recVal) {
   hapticTap(12);
   const s = state.todaySession[exId];
   if (!s) return;
+  const ex = EXERCISES.find(e => e.id === exId);
+  const wUnit = ex?.wUnit || 'kg';
   s.weight = recVal;
   syncTodaySessionToLogs();
   saveState();
   render();
   scheduleCloudSync();
-  showToast(`Đã đặt mức đề xuất ${recVal} kg`);
+  showToast(`Đã đặt mức đề xuất ${recVal} ${wUnit}`);
 }
 
 function updateSetReps(exId, setIdx, val) {
@@ -2111,6 +2117,7 @@ function renderTodayTab() {
     const isCompleted = exDoneCount >= numSets;
     const slotLabel = getSlotLabel(ex);
     const unitLbl = ex.unit || 'lần';
+    const wUnit = ex.wUnit || 'kg';
 
     let setRowsHtml = '';
     for (let i = 0; i < numSets; i++) {
@@ -2155,15 +2162,15 @@ function renderTodayTab() {
 
         <div class="weight-bar">
           <div class="weight-hint" onclick="applyRecWeight('${ex.id}', ${stats.recWeight})" style="cursor:pointer;">
-            <span class="weight-hint-top tabular">Trước: ${stats.lastWeight > 0 ? `${stats.lastWeight} kg` : '—'}</span>
-            <span class="weight-hint-rec tabular">${stats.recHint || `Đề xuất: ${stats.recWeight} kg`}</span>
+            <span class="weight-hint-top tabular">Trước: ${stats.lastWeight > 0 ? `${stats.lastWeight} ${wUnit}` : '—'}</span>
+            <span class="weight-hint-rec tabular">${stats.recHint || `Đề xuất: ${stats.recWeight} ${wUnit}`}</span>
           </div>
           <div class="weight-stepper">
             <button class="stepper-circle" onclick="stepWeight('${ex.id}', -${ex.inc})" aria-label="Giảm tạ">−</button>
             <div class="weight-val-wrap">
-              <input type="text" inputmode="decimal" class="weight-val-input tabular" value="${s.weight}"
-                onfocus="this.select()" onchange="updateWeightInput('${ex.id}', this.value)" aria-label="Mức tạ kg">
-              <span class="weight-unit">kg</span>
+              <input type="text" inputmode="decimal" class="weight-val-input tabular" style="${wUnit === 'kg/tay' ? 'width:50px;' : ''}" value="${s.weight}"
+                onfocus="this.select()" onchange="updateWeightInput('${ex.id}', this.value)" aria-label="Mức tạ ${wUnit}">
+              <span class="weight-unit">${wUnit}</span>
             </div>
             <button class="stepper-circle" onclick="stepWeight('${ex.id}', ${ex.inc})" aria-label="Tăng tạ">+</button>
           </div>
@@ -2300,19 +2307,21 @@ function renderProgressTab() {
 
   const exRows = EXERCISES.map(ex => {
     const st = getExerciseStats(ex);
+    const wUnit = ex.wUnit || 'kg';
     const statusColor = st.status === 'Tăng tải' ? 'var(--green)' : st.status === 'Chững tạ' ? 'var(--orange)' : 'var(--label-secondary)';
+    const nextStatusStr = st.status.includes('→') ? st.status : `${st.status} → ${st.recWeight} ${wUnit}`;
     return `
       <div class="ios-row" onclick="openDetailSheet('${ex.id}')" style="cursor:pointer;">
         <div style="flex:1;">
           <div style="font-size:15px;font-weight:600;letter-spacing:-0.01em;">${ex.title}</div>
           <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;">
-            Khởi điểm ${st.firstWeight || '—'} kg · Kỷ lục ${st.prWeight || '—'} kg
+            Khởi điểm ${st.firstWeight ? `${st.firstWeight} ${wUnit}` : '—'} · Kỷ lục ${st.prWeight ? `${st.prWeight} ${wUnit}` : '—'}
           </div>
         </div>
         <div style="text-align:right;">
-          <div class="tabular" style="font-size:16px;font-weight:700;">${st.lastWeight > 0 ? `${st.lastWeight} kg` : '—'}</div>
+          <div class="tabular" style="font-size:16px;font-weight:700;">${st.lastWeight > 0 ? `${st.lastWeight} ${wUnit}` : '—'}</div>
           <div style="font-size:11px;font-weight:600;color:${statusColor};margin-top:2px;">
-            ${st.status} → ${st.recWeight} kg
+            ${nextStatusStr}
           </div>
         </div>
       </div>
@@ -2372,18 +2381,22 @@ function renderProgressTab() {
     `;
   }).join('');
 
-  const historyRows = [...state.logs].reverse().slice(0, 18).map(l => `
+  const historyRows = [...state.logs].reverse().slice(0, 18).map(l => {
+    const exMatch = EXERCISES.find(e => e.name === l.exercise);
+    const wUnit = exMatch?.wUnit || 'kg';
+    return `
     <div class="ios-row">
       <div style="flex:1;">
         <div style="font-size:14px;font-weight:600;">${l.exercise.split(' - ')[0]}</div>
         <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;" class="tabular">${l.date} · ${l.workout}</div>
       </div>
       <div style="text-align:right;" class="tabular">
-        <div style="font-size:15px;font-weight:600;color:var(--green);">${l.weight} kg × ${l.reps}${l.exercise.includes('Farmer Hold') ? 's' : ''}</div>
+        <div style="font-size:15px;font-weight:600;color:var(--green);">${l.weight} ${wUnit} × ${l.reps}${exMatch?.unit === 'giây' ? 's' : ''}</div>
         <div style="font-size:11px;color:var(--label-secondary);">${Number(l.volume).toLocaleString('vi-VN')} kg</div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   return `
     <div class="apple-card">
@@ -2432,9 +2445,10 @@ function updateExTarget3M(exId, val) {
   if (!num || isNaN(num) || num <= 0) return;
   if (!state.exTargets3M) state.exTargets3M = { ...DEFAULT_EX_TARGETS_3M };
   state.exTargets3M[exId] = num;
+  const wUnit = EXERCISES.find(e => e.id === exId)?.wUnit || 'kg';
   saveState();
   render();
-  showToast(`Đã đặt Target 3 tháng: ${num} kg`);
+  showToast(`Đã đặt Target 3 tháng: ${num} ${wUnit}`);
 }
 
 function updateBodyTarget3M(key, val) {
@@ -2472,10 +2486,11 @@ function renderCardioBodyTab() {
   const maxRunKm = state.cardioLogs.reduce((m, c) => Math.max(m, Number(c.dist) || 0), 0);
   const runPct = Math.min(100, Math.round((maxRunKm / (bt.targetRunKm || 5.0)) * 100));
 
-  // Calculate overall 3-month strength target completion across 13 exercises
+  // Calculate overall 3-month strength target completion across all 14 exercises
   let sumStrengthPct = 0;
   const exTargetRows = EXERCISES.map(ex => {
     const st = getExerciseStats(ex);
+    const wUnit = ex.wUnit || 'kg';
     const curPR = st.prWeight || st.lastWeight || 0;
     const tWeight = Number(et[ex.id]) || DEFAULT_EX_TARGETS_3M[ex.id] || 50;
     const pct = tWeight > 0 ? Math.min(100, Math.round((curPR / tWeight) * 100)) : 0;
@@ -2490,13 +2505,13 @@ function renderCardioBodyTab() {
             <div style="flex:1;max-width:110px;height:3.5px;background:var(--bg-tertiary);border-radius:999px;overflow:hidden;">
               <div style="width:${pct}%;height:100%;background:${barColor};"></div>
             </div>
-            <span style="font-size:12px;color:var(--label-secondary);" class="tabular">${curPR > 0 ? `${curPR} kg` : '—'} (${pct}%)</span>
+            <span style="font-size:12px;color:var(--label-secondary);" class="tabular">${curPR > 0 ? `${curPR} ${wUnit}` : '—'} (${pct}%)</span>
           </div>
         </div>
-        <div class="set-reps-box" style="margin-right:0;min-width:78px;padding:4px 10px;">
-          <input type="text" inputmode="decimal" class="set-reps-field tabular" style="width:46px;color:var(--green);"
+        <div class="set-reps-box" style="margin-right:0;min-width:86px;padding:4px 10px;">
+          <input type="text" inputmode="decimal" class="set-reps-field tabular" style="width:42px;color:var(--green);"
             value="${tWeight}" onfocus="this.select()" onchange="updateExTarget3M('${ex.id}', this.value)" aria-label="Target 3 tháng ${ex.title}">
-          <span class="set-reps-lbl">kg</span>
+          <span class="set-reps-lbl">${wUnit}</span>
         </div>
       </div>
     `;
@@ -2721,10 +2736,10 @@ async function saveWebhookUrl() {
 
 async function copyAppsScriptCode() {
   try {
-    const res = await fetch('./google-apps-script.gs?v=24', { cache: 'no-store' });
+    const res = await fetch('./google-apps-script.gs?v=25', { cache: 'no-store' });
     const code = await res.text();
     await navigator.clipboard.writeText(code);
-    showToast('Đã sao chép mã Google Apps Script v24');
+    showToast('Đã sao chép mã Google Apps Script v25');
   } catch (e) {
     showToast('Mở file google-apps-script.gs để chép mã');
   }
@@ -2817,7 +2832,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=24', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=25', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
