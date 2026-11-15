@@ -156,7 +156,7 @@ const EXERCISES = [
     title: 'Machine Shoulder Press',
     vnSub: 'Đẩy vai · Máy Vàng-Đen lắp tạ Tầng 1 (+2.5kg/bên)',
     floor: 1,
-    slotE7: 'T1-7A',
+    slotE7: 'T1-7',
     slot2F: 'T1-8',
     slotA: 'A-5',
     slotB: null,
@@ -171,7 +171,7 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=Lo6dnolXt3E',
     image: 'https://www.muscleandstrength.com/exercises/shoulders',
-    cues: 'Lợi đơn lợi kép ở cuối Tầng 1: Vai vừa được nghỉ 20 phút sau bài Ngực Tầng 2, vừa tập trên Máy Vàng-Đen lắp bánh tạ rời (gắn được đĩa nhỏ 2.5kg mỗi bên = +5kg tổng)! Nghỉ 90s bước 3m sang Tháp Cáp kẹp luôn Cuộn cổ tay (T1-7B). Đủ 12/12 lần gắn thêm 2.5kg/bên.',
+    cues: 'Lợi đơn lợi kép ở cuối Tầng 1: Vai vừa được nghỉ 20 phút sau bài Ngực Tầng 2, vừa tập trên Máy Vàng-Đen lắp bánh tạ rời (gắn được đĩa nhỏ 2.5kg mỗi bên = +5kg tổng). Đủ 12/12 lần gắn thêm 2.5kg/bên, xong bước sang kệ gương tập Nâng vai ngang (T1-8A).',
     mistakes: 'Ưỡn võng thắt lưng quá mức; thả rơi tạ tự do.',
     alt: 'Máy MULTI PRESS Đen chồng tạ Tầng 2 (+5kg/nấc)'
   },
@@ -202,14 +202,14 @@ const EXERCISES = [
     id: 'EX06',
     name: 'Wrist Curl - Cuộn cổ tay',
     title: 'Wrist Curl (Finger-Roll)',
-    vnSub: 'Cuộn cổ tay · Cáp thấp Tháp Cáp Tầng 1 (+5kg)',
+    vnSub: 'Cuộn cổ tay · Kệ Tạ đơn / Cáp thấp Tầng 1',
     floor: 1,
-    slotE7: 'T1-7B',
+    slotE7: 'T1-8B',
     slot2F: 'T1-9C',
     slotA: 'A-7',
     slotB: null,
     muscle: 'Cơ gập cổ tay, Sức nắm (Grip)',
-    equip: 'Ròng rọc thấp + Thanh thẳng xoay Tháp Cáp Tầng 1 (+5kg/nấc) + 45s Farmer Hold',
+    equip: 'Ròng rọc thấp + Thanh thẳng xoay Tháp Cáp Tầng 1 (+5kg/nấc) hoặc Tạ đơn kệ gương (+2.5kg) + 45s Farmer Hold',
     sets: 2,
     repMin: 10,
     repMax: 15,
@@ -218,7 +218,7 @@ const EXERCISES = [
     inc: 5,
     video: 'https://www.youtube.com/watch?v=1-55N7Qlu_U',
     image: 'https://www.muscleandstrength.com/exercises/barbell-wrist-curl.html',
-    cues: 'Cách máy Đẩy vai Vàng-Đen đúng 3 bước chân: Hạ chốt đỏ ròng rọc Tháp Cáp xuống thấp nhất, móc thanh đòn thẳng xoay có sẵn dưới đất để cuộn cổ tay ngửa (tích lũy 10 → 12 → 15 lần lên +5kg). Nếu cầm Tạ đơn kệ gương thì nhảy +2.5kg. Cuối buổi xách tạ 45s.',
+    cues: 'Kẹp ngay trong 60s nghỉ của bài Nâng vai ngang (T1-8A) để tiết kiệm trọn thời gian: Hạ ròng rọc Tháp Cáp xuống thấp nhất móc thanh thẳng xoay (+5kg/nấc, tích lũy 10 → 12 → 15 lần) hoặc cầm Tạ đơn ngay kệ gương (+2.5kg). Cuối buổi xách tạ 45s.',
     mistakes: 'Nhấc cả cẳng tay khỏi đùi; giật cổ tay theo quán tính.',
     alt: 'Dumbbell Finger-Roll kệ gương Tầng 1 (+2.5kg)'
   },
@@ -298,13 +298,14 @@ const EXERCISES = [
     id: 'EX10',
     name: 'Lateral Raise - Nâng vai ngang',
     title: 'Lateral Raise',
-    vnSub: 'Nâng vai ngang · Dàn Tạ đơn gương Tầng 1',
+    vnSub: 'Nâng vai ngang (Khung chữ V) · Dàn Tạ đơn gương Tầng 1',
     floor: 1,
+    slotE7: 'T1-8A',
     slot2F: 'T1-9A',
     slotA: null,
     slotB: 'B-6',
     muscle: 'Cơ vai giữa (Lateral Deltoid)',
-    equip: 'Dàn Tạ đơn dọc gương Tầng 1 (+2.5kg)',
+    equip: 'Dàn Tạ đơn dọc gương Tầng 1 (+2.5kg · Thay thế: Cáp thấp kéo vai ngang)',
     sets: 2,
     setsB: 3,
     repMin: 12,
@@ -314,7 +315,7 @@ const EXERCISES = [
     inc: 2.5,
     video: 'https://www.youtube.com/watch?v=3VcKaXpzqRo',
     image: 'https://www.muscleandstrength.com/exercises/dumbbell-lateral-raise.html',
-    cues: 'Đứng trước dàn tạ đơn dọc gương Tầng 1: Hơi đổ nhẹ người về trước 10°, dẫn hướng bằng cùi chỏ nâng ngang tầm vai; hạ chậm 2–3 giây.',
+    cues: 'Mảnh ghép quyết định độ bè ngang bờ vai chữ V: Đứng trước dàn tạ đơn dọc gương Tầng 1, hơi đổ người về trước 10–15°, dẫn hướng bằng cùi chỏ nâng chếch trước 20° (mặt phẳng bả vai) ngang tầm vai; hạ chậm 2–3 giây. Nghỉ 60s kẹp luôn Cuộn cổ tay (T1-8B). Đủ 15/15 lần mới tăng tạ.',
     mistakes: 'Dùng đà nhún người; nâng quá cao làm co cầu vai.',
     alt: 'Cáp kéo vai ngang tại Tháp Cáp Tầng 1'
   },
@@ -526,7 +527,7 @@ function getLastSessionInfo() {
       todaySavedCount: todayLogs.length,
       totalVol: 0,
       nextMode: 'ESSENTIAL_7',
-      nextLabel: '7 Bài Chuẩn · 18 Hiệp (Tầng 2 → Tầng 1)'
+      nextLabel: '8 Bài Chuẩn · 20 Hiệp (Tầng 2 → Tầng 1)'
     };
   }
   const lastEntry = sourceLogs[sourceLogs.length - 1];
@@ -536,19 +537,24 @@ function getLastSessionInfo() {
 
   let countA = 0;
   let countB = 0;
+  let isEssential8 = false;
   let isEssential7 = false;
   sameDayLogs.forEach(l => {
     const wStr = String(l.workout || '').toUpperCase();
-    if (wStr.includes('7 BÀI') || wStr.includes('2 TẦNG') || wStr.includes('FULL')) isEssential7 = true;
+    if (wStr.includes('8 BÀI')) isEssential8 = true;
+    else if (wStr.includes('7 BÀI') || wStr.includes('2 TẦNG') || wStr.includes('FULL')) isEssential7 = true;
     else if (wStr.includes('B')) countB++;
     else if (wStr.includes('A')) countA++;
   });
 
   const lastWTag = String(lastEntry.workout || '').toUpperCase();
   let lastCode = 'ESSENTIAL_7';
-  let lastLabel = '7 Bài Chuẩn';
+  let lastLabel = '8 Bài Chuẩn';
 
-  if (isEssential7) {
+  if (isEssential8) {
+    lastCode = 'ESSENTIAL_7';
+    lastLabel = '8 Bài Chuẩn';
+  } else if (isEssential7) {
     lastCode = 'ESSENTIAL_7';
     lastLabel = '7 Bài Chuẩn';
   } else if (lastWTag.includes('B') || countB > countA) {
@@ -567,7 +573,7 @@ function getLastSessionInfo() {
     todaySavedCount: todayLogs.length,
     totalVol,
     nextMode: 'ESSENTIAL_7',
-    nextLabel: '7 Bài Chuẩn · 18 Hiệp (Tầng 2 → Tầng 1)'
+    nextLabel: '8 Bài Chuẩn · 20 Hiệp (Tầng 2 → Tầng 1)'
   };
 }
 
@@ -795,7 +801,7 @@ function hydrateTodayFromLogs(targetDate) {
 function syncTodaySessionToLogs(dateOverride = null) {
   const targetDate = normalizeDateVN(dateOverride || state.todaySessionDate || getTodayDateKey());
   const workoutLabel = state.workoutMode === 'ESSENTIAL_7'
-    ? '7 Bài Chuẩn (18 Hiệp)'
+    ? '8 Bài Chuẩn (20 Hiệp)'
     : state.workoutMode === 'WORKOUT_A'
       ? 'Workout A'
       : 'Workout B';
@@ -900,11 +906,11 @@ function scheduleCloudSync() {
 }
 
 function getTodayExercises() {
-  // Default: Tinh Nhuệ 7 Bài Chuẩn (18 hiệp · Tầng 2 -> Tầng 1)
+  // Default: Tinh Nhuệ 8 Bài Chuẩn + Kẹp Cổ Tay (20 hiệp · Tầng 2 -> Tầng 1)
   if (state.workoutMode === 'ESSENTIAL_7') {
     // Chặng 1 Tầng 2 (3 trạm · 7 hiệp): EX08 Ngực trên (3h) -> EX11 Hammer/Reverse Curl (2h) -> EX12 Gập bụng (2h)
-    // Chặng 2 Tầng 1 (4 trạm + kẹp cổ tay · 11 hiệp): EX01 Đạp đùi (3h) -> EX03 Kéo xô (2h) -> EX09 Kéo lưng/Vai sau (2h) -> EX04 Đẩy vai (2h) + EX06 Cuộn cổ tay (2h)
-    const order = ['EX08', 'EX11', 'EX12', 'EX01', 'EX03', 'EX09', 'EX04', 'EX06'];
+    // Chặng 2 Tầng 1 (5 bài + kẹp cổ tay · 13 hiệp): EX01 Đạp đùi (3h) -> EX03 Kéo xô (2h) -> EX09 Kéo lưng/Vai sau (2h) -> EX04 Đẩy vai (2h) -> EX10 Nâng vai ngang (2h) + EX06 Cuộn cổ tay (2h)
+    const order = ['EX08', 'EX11', 'EX12', 'EX01', 'EX03', 'EX09', 'EX04', 'EX10', 'EX06'];
     return order.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   }
   if (state.workoutMode === 'WORKOUT_A') {
@@ -2047,7 +2053,7 @@ function renderTodayTab() {
         : 'Chặng 2 · Đi xuống Tầng 1 (Tập xong về luôn)';
       const floorMeta = currentFloor === 2
         ? (state.workoutMode === 'ESSENTIAL_7' ? '3 trạm · 7 hiệp · ~14p' : state.workoutMode === 'WORKOUT_A' ? '2 bài · ~12 phút' : '4 bài · ~21 phút')
-        : (state.workoutMode === 'ESSENTIAL_7' ? '4 trạm + Cổ tay · 11 hiệp · ~22p' : state.workoutMode === 'WORKOUT_A' ? '5 bài · ~30 phút' : '3 bài · ~20 phút');
+        : (state.workoutMode === 'ESSENTIAL_7' ? '5 bài + Cổ tay · 13 hiệp · ~25p' : state.workoutMode === 'WORKOUT_A' ? '5 bài · ~30 phút' : '3 bài · ~20 phút');
       listHtml += `
         <div class="section-header">
           <span class="section-title">${floorTitle}</span>
@@ -2128,13 +2134,13 @@ function renderTodayTab() {
     <!-- 1-Line Subtle Session Context -->
     <div class="session-caption tabular" onclick="setWorkoutMode('ESSENTIAL_7')" style="cursor:pointer;">
       <span>${lastSession.todaySavedCount > 0 ? `<strong style="color:var(--green);">Hôm nay: Đã lưu ${lastSession.todaySavedCount} bài ✓</strong> · Trước: ${lastSession.lastDate}` : `Trước: ${lastSession.lastLabel} (${lastSession.lastDate})`}</span>
-      <span>Chế độ: <strong>7 Bài Chuẩn · 18 Hiệp</strong> ${state.workoutMode === 'ESSENTIAL_7' ? '✓' : '→'}</span>
+      <span>Chế độ: <strong>8 Bài Chuẩn · 20 Hiệp</strong> ${state.workoutMode === 'ESSENTIAL_7' ? '✓' : '→'}</span>
     </div>
 
-    <!-- Sliding Segmented Control (7 Bài Chuẩn | Buổi A | Buổi B) -->
+    <!-- Sliding Segmented Control (8 Bài Chuẩn | Buổi A | Buổi B) -->
     <div class="segmented-control">
       <div id="segPill" class="segmented-pill" style="transform:translateX(${modeIdx * 100}%);"></div>
-      <button class="seg-btn ${state.workoutMode === 'ESSENTIAL_7' ? 'active' : ''}" onclick="setWorkoutMode('ESSENTIAL_7')">7 Bài Chuẩn</button>
+      <button class="seg-btn ${state.workoutMode === 'ESSENTIAL_7' ? 'active' : ''}" onclick="setWorkoutMode('ESSENTIAL_7')">8 Bài Chuẩn</button>
       <button class="seg-btn ${state.workoutMode === 'WORKOUT_A' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_A')">Buổi A</button>
       <button class="seg-btn ${state.workoutMode === 'WORKOUT_B' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_B')">Buổi B</button>
     </div>
@@ -2265,14 +2271,15 @@ function renderProgressTab() {
   state.logs.forEach(l => {
     const dKey = normalizeDateVN(l.date);
     if (!sessionMap.has(dKey)) {
-      sessionMap.set(dKey, { date: dKey, countA: 0, countB: 0, e7: false, full: false, exCount: 0, vol: 0, lastTag: l.workout });
+      sessionMap.set(dKey, { date: dKey, countA: 0, countB: 0, e8: false, e7: false, full: false, exCount: 0, vol: 0, lastTag: l.workout });
     }
     const item = sessionMap.get(dKey);
     item.exCount++;
     item.vol += Number(l.volume) || 0;
     item.lastTag = l.workout;
     const wStr = String(l.workout || '').toUpperCase();
-    if (wStr.includes('7 BÀI')) item.e7 = true;
+    if (wStr.includes('8 BÀI')) item.e8 = true;
+    else if (wStr.includes('7 BÀI')) item.e7 = true;
     else if (wStr.includes('2 TẦNG') || wStr.includes('FULL')) item.full = true;
     else if (wStr.includes('B')) item.countB++;
     else if (wStr.includes('A')) item.countA++;
@@ -2281,7 +2288,10 @@ function renderProgressTab() {
   const sessionRows = Array.from(sessionMap.values()).reverse().map(s => {
     let label = 'Buổi A';
     let color = 'var(--green)';
-    if (s.e7) {
+    if (s.e8) {
+      label = '8 Bài Chuẩn';
+      color = 'var(--blue)';
+    } else if (s.e7) {
       label = '7 Bài Chuẩn';
       color = 'var(--blue)';
     } else if (s.full && s.exCount >= 7) {
@@ -2654,10 +2664,10 @@ async function saveWebhookUrl() {
 
 async function copyAppsScriptCode() {
   try {
-    const res = await fetch('./google-apps-script.gs?v=22', { cache: 'no-store' });
+    const res = await fetch('./google-apps-script.gs?v=23', { cache: 'no-store' });
     const code = await res.text();
     await navigator.clipboard.writeText(code);
-    showToast('Đã sao chép mã Google Apps Script v22');
+    showToast('Đã sao chép mã Google Apps Script v23');
   } catch (e) {
     showToast('Mở file google-apps-script.gs để chép mã');
   }
@@ -2750,7 +2760,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=22', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=23', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })

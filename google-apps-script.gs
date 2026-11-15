@@ -1,5 +1,5 @@
 /**
- * MÃ ĐỒNG BỘ 2 CHIỀU CHO APP HÀ GYM (v22 — TỰ ĐỘNG GHI & CHỐNG TRÙNG LẶP DÒNG)
+ * MÃ ĐỒNG BỘ 2 CHIỀU CHO APP HÀ GYM (v23 — TỰ ĐỘNG GHI & CHỐNG TRÙNG LẶP DÒNG)
  * Hướng dẫn gắn vào Sheet (Chỉ làm 1 lần, dùng vĩnh viễn):
  * 1. Mở file Google Sheet: https://docs.google.com/spreadsheets/d/1pPayEETE_yoW9lzxYy3Qdd2GV5yEqp1uQZq285eK-wQ/edit
  * 2. Trên thanh menu bấm: Tiện ích mở rộng (Extensions) -> Apps Script
@@ -68,7 +68,7 @@ function doPost(e) {
         const rowValues = [
           "'" + dStr, // Giữ chuẩn chuỗi DD/MM/YYYY, chống Google Sheet đảo tháng/ngày kiểu Mỹ
           Number(r.week) || '',
-          r.workout || '7 Bài Chuẩn (18 Hiệp)',
+          r.workout || '8 Bài Chuẩn (20 Hiệp)',
           exStr,
           Number(r.weight) || 0,
           Number(r.reps) || 0,
