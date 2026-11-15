@@ -81,24 +81,25 @@ const EXERCISES = [
     id: 'EX01',
     name: 'Leg Press - Đạp đùi',
     title: 'Leg Press / V-Squat',
-    vnSub: 'Đạp & Gánh đùi · Máy Vàng-Đen Tầng 1 (+2.5kg/bên)',
+    vnSub: 'Đạp & Gánh đùi · Máy Vàng-Đen Tầng 1 (+5kg/bên = +10kg)',
     floor: 1,
     slotE7: 'T1-5',
     slot2F: 'T1-5',
     slotA: 'A-4',
     slotB: null,
     muscle: 'Đùi trước, Mông',
-    equip: 'Máy Đạp đùi 45° / Máy V-Squat Vàng-Đen Tầng 1 (Lắp bánh tạ rời 2 bên)',
+    equip: 'Máy Đạp đùi 45° / Máy V-Squat Vàng-Đen Tầng 1 (Lắp bánh 5kg/bên = +10kg/nấc)',
     sets: 3,
     repMin: 8,
     repMax: 10,
     rir: '1–2 RIR',
     restSec: 105,
-    inc: 5,
+    inc: 10,
+    minRecWeight: 180,
     video: 'https://www.youtube.com/watch?v=IZxyjW7MPJQ',
     image: 'https://www.muscleandstrength.com/exercises/45-degree-leg-press.html',
-    cues: 'Góc trong Tầng 1 có cặp Máy Đạp đùi 45° & Máy Gánh đùi V-Squat màu Vàng-Đen sát cạnh nhau (đều lắp bánh tạ rời, gắn được đĩa 2.5kg/bên = +5kg tổng). Đạt đủ 10/10/10 lần thì buổi sau gắn thêm 2.5kg mỗi bên.',
-    mistakes: 'Khóa cứng đầu gối; nhấc mông/lưng khỏi đệm; đầu gối sụp vào trong.',
+    cues: 'Góc trong Tầng 1 có cặp Máy Đạp đùi 45° & V-Squat Vàng-Đen sát cạnh nhau. Luôn đạp nháp 1 hiệp khởi động khớp ở 130–140kg × 6 lần trước khi vào mức chính (180kg+). Hạ sâu đủ biên độ, mông lưng dán chặt đệm, không khóa cứng gối. Đạt đủ 10/10/10 lần buổi sau lắp thêm bánh 5kg mỗi bên (+10kg tổng). Khi vượt mốc 200kg+ có thể hạ bước tăng về +5kg nếu sát ngưỡng.',
+    mistakes: 'Khóa cứng đầu gối; nhấc mông/lưng khỏi đệm; bỏ hiệp nháp làm quen khớp.',
     alt: 'Máy V-Squat Vàng-Đen / Smith Squat (Tầng 1)'
   },
   {
@@ -469,7 +470,7 @@ const INITIAL_CARDIO_LOGS = [
 
 // Default 3-Month (12-Week) Strength Targets (kg) for each exercise
 const DEFAULT_EX_TARGETS_3M = {
-  EX01: 200,   // Leg Press: 160kg -> 200kg
+  EX01: 240,   // Leg Press: 180kg -> 240kg (+10kg/nấc)
   EX02: 75,    // Seated Chest Press: 55kg -> 75kg
   EX03: 65,    // Lat Pulldown: 40kg -> 65kg
   EX04: 75,    // Machine Shoulder Press: 60kg -> 75kg
@@ -627,6 +628,9 @@ function loadState() {
         bodyTargets3M: { ...DEFAULT_BODY_TARGETS_3M, ...(parsed.bodyTargets3M || {}) },
         dailyActivity: parsed.dailyActivity || {}
       };
+      if (state.exTargets3M && state.exTargets3M.EX01 === 200) {
+        state.exTargets3M.EX01 = 240;
+      }
     }
   } catch (e) {}
   // Default to the unified Essential 7 routine so all 7 core lifts progress every week
@@ -715,9 +719,14 @@ function getExerciseStats(ex, options = {}) {
   let recReps = ex.repMax;
   let recHint = '';
 
-  // Double Progression: Step up weight (+5kg machine / +2.5kg DB) when hitting repMax!
-  if (lastAvgReps >= ex.repMax) {
-    recWeight = lastW + ex.inc;
+  // Double Progression: Step up weight (+10kg leg press / +5kg machine / +2.5kg DB) when hitting repMax!
+  if (ex.minRecWeight && lastW < ex.minRecWeight) {
+    recWeight = ex.minRecWeight;
+    recReps = ex.repMin;
+    recHint = `Đã vượt ${lastW}kg×16 → Lên ${recWeight} ${wUnit} × ${ex.repMin}–${ex.repMax} ${unitLbl}`;
+  } else if (lastAvgReps >= ex.repMax) {
+    const jumpSteps = (ex.unit !== 'giây' && lastAvgReps >= ex.repMax + 5) ? 2 : 1;
+    recWeight = lastW + ex.inc * jumpSteps;
     recReps = ex.repMin;
     recHint = `Đủ ${ex.repMax} ${unitLbl} → Lên ${recWeight} ${wUnit} × ${ex.repMin} ${unitLbl}`;
   } else {
@@ -1353,7 +1362,7 @@ const EX_IMG_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/
 // Ảnh chụp thực tế các máy tại phòng tập PLUS GYM của anh Hà (Tầng 2 & Tầng 1)
 const REAL_GYM_PHOTOS = {
   EX01: [
-    { label: 'Máy Gánh/Đạp Đùi Vàng-Đen · Tầng 1 (Gắn đĩa 2.5kg/bên)', src: './img/gym/t1_vsquat_leg.jpg' }
+    { label: 'Máy Đạp Đùi 45° / V-Squat · Tầng 1 (+5kg/bên = +10kg)', src: './img/gym/t1_vsquat_leg.jpg' }
   ],
   EX02: [
     { label: 'Máy Đẩy Ngực 90° Xám · Tầng 2 (+5kg)', src: './img/gym/t2_chest_press_90.jpg' },
@@ -1817,8 +1826,8 @@ async function syncFromGoogleSheet(silent = false) {
     state.lastSync = `Đồng bộ ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     if (!state.userManuallySelectedMode) {
       state.workoutMode = getLastSessionInfo().nextMode;
-      initTodayDefaults();
     }
+    initTodayDefaults();
     saveState();
     render();
     if (!silent) showToast('Đã cập nhật dữ liệu mới nhất');
@@ -2736,10 +2745,10 @@ async function saveWebhookUrl() {
 
 async function copyAppsScriptCode() {
   try {
-    const res = await fetch('./google-apps-script.gs?v=25', { cache: 'no-store' });
+    const res = await fetch('./google-apps-script.gs?v=26', { cache: 'no-store' });
     const code = await res.text();
     await navigator.clipboard.writeText(code);
-    showToast('Đã sao chép mã Google Apps Script v25');
+    showToast('Đã sao chép mã Google Apps Script v26');
   } catch (e) {
     showToast('Mở file google-apps-script.gs để chép mã');
   }
@@ -2832,7 +2841,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=25', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=26', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
