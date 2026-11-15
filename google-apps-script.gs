@@ -1,5 +1,5 @@
 /**
- * MÃ ĐỒNG BỘ 2 CHIỀU CHO APP HÀ GYM (v27 — TỰ ĐỘNG GHI & CHỐNG TRÙNG LẶP DÒNG)
+ * MÃ ĐỒNG BỘ 2 CHIỀU CHO APP HÀ GYM (v28 — TỰ ĐỘNG GHI & CHỐNG TRÙNG LẶP DÒNG)
  * Hướng dẫn gắn vào Sheet (Chỉ làm 1 lần, dùng vĩnh viễn):
  * 1. Mở file Google Sheet: https://docs.google.com/spreadsheets/d/1pPayEETE_yoW9lzxYy3Qdd2GV5yEqp1uQZq285eK-wQ/edit
  * 2. Trên thanh menu bấm: Tiện ích mở rộng (Extensions) -> Apps Script
@@ -31,7 +31,7 @@ function normDate(raw) {
 function doGet() {
   return jsonResponse({
     ok: true,
-    service: 'Ha Gym Cloud Sync v27',
+    service: 'Ha Gym Cloud Sync v28',
     sheetId: SPREADSHEET_ID
   });
 }
@@ -91,10 +91,36 @@ function doPost(e) {
       return jsonResponse({ ok: true, added: added, updated: updated });
     }
 
-    if (action === 'appendBody') {
+    if (action === 'appendBody' || action === 'upsertBody') {
       const ws = ss.getSheetByName('Body Measurements');
       const b = payload.data || {};
       const dStr = normDate(b.date);
+      const displayVals = ws.getDataRange().getDisplayValues();
+      let existingRow = 0;
+      for (let i = 1; i < displayVals.length; i++) {
+        if (normDate(displayVals[i][0]) === dStr) {
+          existingRow = i + 1;
+          break;
+        }
+      }
+
+      if (existingRow > 0) {
+        const prev = displayVals[existingRow - 1] || [];
+        const mergedRow = [
+          "'" + dStr,
+          Number(b.weight) || Number(prev[1]) || 0,
+          b.waist || prev[2] || '',
+          b.chest || prev[3] || '',
+          b.arm || prev[4] || '',
+          b.forearm || prev[5] || '',
+          b.thigh || prev[6] || '',
+          b.bf || prev[7] || '',
+          b.note || prev[8] || ''
+        ];
+        ws.getRange(existingRow, 1, 1, mergedRow.length).setValues([mergedRow]);
+        return jsonResponse({ ok: true, updated: 1 });
+      }
+
       ws.appendRow([
         "'" + dStr,
         Number(b.weight) || 0,
@@ -106,7 +132,7 @@ function doPost(e) {
         b.bf || '',
         b.note || ''
       ]);
-      return jsonResponse({ ok: true });
+      return jsonResponse({ ok: true, added: 1 });
     }
 
     if (action === 'appendCardio') {

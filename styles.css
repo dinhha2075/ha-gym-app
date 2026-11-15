@@ -1040,6 +1040,227 @@ select option {
   transform: translateX(-50%) translateY(0);
 }
 
+/* ============================================================================
+   AGE-40 GOLDEN RATIO BODY BLUEPRINT (1M63 APPLE FITNESS EDITION)
+   ============================================================================ */
+.bp-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bp-readiness-pill {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 0.5px solid rgba(48, 209, 88, 0.35);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bp-canvas-box {
+  background: rgba(0, 0, 0, 0.45);
+  border: 0.5px solid var(--glass-edge);
+  border-radius: 14px;
+  padding: 10px 8px 8px 8px;
+  margin-bottom: 12px;
+}
+
+.bp-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.bp-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 6px 2px 6px;
+  margin-top: 6px;
+  border-top: 0.5px solid var(--separator);
+  font-size: 11px;
+  color: var(--label-secondary);
+}
+
+.bp-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bp-swatch-fat {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: rgba(255, 159, 10, 0.30);
+  border: 1px dashed var(--orange);
+  flex-shrink: 0;
+}
+
+.bp-swatch-muscle {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: rgba(48, 209, 88, 0.30);
+  border: 1px solid var(--green);
+  flex-shrink: 0;
+}
+
+.bp-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  padding: 9px 12px;
+  margin-bottom: 12px;
+}
+
+.bp-slider-lbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--label-secondary);
+  white-space: nowrap;
+}
+
+.bp-range {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  outline: none;
+  cursor: pointer;
+}
+
+.bp-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2px solid var(--green);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+
+.bp-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2px solid var(--green);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+
+.bp-stage-pill {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  white-space: nowrap;
+  min-width: 96px;
+  text-align: right;
+}
+
+.bp-ratio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bp-ratio-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bp-ratio-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.bp-ratio-track {
+  position: relative;
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+}
+
+.bp-ratio-sim-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 999px;
+  background: rgba(48, 209, 88, 0.32);
+  transition: width 100ms ease-out;
+}
+
+.bp-ratio-cur-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 999px;
+  background: var(--green);
+  transition: width 220ms ease-out;
+}
+
+.bp-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 13px;
+  padding-top: 11px;
+  border-top: 0.5px solid var(--separator);
+}
+
+.bp-tag-measured {
+  display: inline-block;
+  padding: 1.5px 6px;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: var(--green-dim);
+  color: var(--green);
+}
+
+.bp-tag-est {
+  display: inline-block;
+  padding: 1.5px 6px;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: rgba(255, 159, 10, 0.15);
+  color: var(--orange);
+}
+
+.bp-stage-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
 /* Accessibility: Reduced Motion & Reduced Transparency */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

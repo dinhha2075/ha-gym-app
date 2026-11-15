@@ -486,13 +486,27 @@ const DEFAULT_EX_TARGETS_3M = {
   EX14: 30     // Farmer Hold (mỗi tay): 20kg -> 30kg × 45s
 };
 
+const GOLDEN_40_TARGETS = {
+  heightCm: 163,
+  weight: 63.0,
+  bf: 13.0,
+  waist: 74.5,      // WHtR = 0.457 (Phẳng bụng, kéo dài tỷ lệ chân thị giác cho 1m63)
+  shoulder: 117.0,  // Vai/Eo = 1.57x (Chuẩn Chữ V Adonis)
+  chest: 100.5,     // Ngực/Eo = 1.35x (Dày thềm ngực trên & xô)
+  arm: 36.5,        // Bắp tay gồng săn nét
+  forearm: 33.0,    // Cẳng tay = 90% Bắp tay (Xắn tay áo đầm chắc)
+  thigh: 55.5       // Đùi săn gọn mặc quần Âu thoát dáng
+};
+
 const DEFAULT_BODY_TARGETS_3M = {
   startWeight: 78.0,
   month1Weight: 71.0,
   month2Weight: 68.0,
   month3Weight: 65.0,
-  finalWeight: 62.0,
-  targetWaist: 78.0,
+  finalWeight: 63.0,
+  targetWaist: 74.5,
+  targetShoulder: 117.0,
+  targetChest: 100.5,
   targetForearm: 33.0,
   targetRunKm: 5.0,
   stepGoal: 8000
@@ -680,6 +694,12 @@ function loadState() {
       if (state.exTargets3M && state.exTargets3M.EX01 === 200) {
         state.exTargets3M.EX01 = 240;
       }
+      if (state.bodyTargets3M && state.bodyTargets3M.finalWeight === 62) {
+        state.bodyTargets3M.finalWeight = 63.0;
+      }
+      if (state.bodyTargets3M && state.bodyTargets3M.targetWaist === 78) {
+        state.bodyTargets3M.targetWaist = 74.5;
+      }
     }
   } catch (e) {}
   // Default to the unified Essential 7 routine so all 7 core lifts progress every week
@@ -716,6 +736,338 @@ function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {}
+}
+
+// ============================================================================
+// 2A. AGE-40 GOLDEN RATIO & ANATOMICAL SILHOUETTE ENGINE (1M63 EDITION)
+// ============================================================================
+let blueprintProgress = 1.0;
+
+function parseShoulderFromNote(noteStr) {
+  const m = String(noteStr || '').match(/Vai[:\s]*([0-9]+(?:\.[0-9]+)?)/i);
+  return m ? parseFloat(m[1]) : 0;
+}
+
+function getCurrentBodyProfile() {
+  const findLatest = (field) => {
+    for (let i = (state.body || []).length - 1; i >= 0; i--) {
+      const v = parseFloat(state.body[i]?.[field]);
+      if (!isNaN(v) && v > 0) return v;
+    }
+    if (field === 'shoulder') {
+      for (let i = (state.body || []).length - 1; i >= 0; i--) {
+        const sv = parseShoulderFromNote(state.body[i]?.note);
+        if (sv > 0) return sv;
+      }
+    }
+    return null;
+  };
+
+  const mWeight = findLatest('weight');
+  const weight = mWeight || 74.0;
+  const dw = weight - 74.0; // Anthropometric scaling around 1m63 · 74.0kg reference
+
+  const mWaist = findLatest('waist');
+  const mShoulder = findLatest('shoulder');
+  const mChest = findLatest('chest');
+  const mArm = findLatest('arm');
+  const mForearm = findLatest('forearm');
+  const mThigh = findLatest('thigh');
+  const mBf = findLatest('bf');
+
+  const profile = {
+    weight,
+    waist: mWaist || Number((87.0 + dw * 0.95).toFixed(1)),
+    shoulder: mShoulder || Number((112.0 + dw * 0.25).toFixed(1)),
+    chest: mChest || Number((98.0 + dw * 0.55).toFixed(1)),
+    arm: mArm || Number((34.5 + dw * 0.18).toFixed(1)),
+    forearm: mForearm || Number((29.5 + dw * 0.12).toFixed(1)),
+    thigh: mThigh || Number((58.0 + dw * 0.45).toFixed(1)),
+    bf: mBf || Number(Math.max(10, Math.min(35, 24.0 + dw * 0.75)).toFixed(1)),
+    measured: {
+      weight: Boolean(mWeight),
+      waist: Boolean(mWaist),
+      shoulder: Boolean(mShoulder),
+      chest: Boolean(mChest),
+      arm: Boolean(mArm),
+      forearm: Boolean(mForearm),
+      thigh: Boolean(mThigh),
+      bf: Boolean(mBf)
+    }
+  };
+
+  const coreKeys = ['weight', 'waist', 'shoulder', 'chest', 'arm', 'forearm', 'thigh'];
+  profile.measuredCount = coreKeys.filter(k => profile.measured[k]).length;
+
+  const wScore = Math.min(1, Math.max(0, (78.0 - profile.weight) / (78.0 - GOLDEN_40_TARGETS.weight)));
+  const vRatio = profile.shoulder / Math.max(55, profile.waist);
+  const vScore = Math.min(1, Math.max(0, (vRatio - 1.22) / (1.57 - 1.22)));
+  const whtr = profile.waist / GOLDEN_40_TARGETS.heightCm;
+  const waistScore = Math.min(1, Math.max(0, (0.56 - whtr) / (0.56 - 0.457)));
+  const faScore = Math.min(1, Math.max(0, (profile.forearm - 28.5) / (GOLDEN_40_TARGETS.forearm - 28.5)));
+  profile.goldenReadinessPct = Math.round((wScore * 0.35 + vScore * 0.30 + waistScore * 0.20 + faScore * 0.15) * 100);
+
+  return profile;
+}
+
+function buildBlueprintBodyPaths(cx, m, isDefined) {
+  const sw = m.shoulder * 0.35;
+  const cw = m.chest * 0.30;
+  const ww = (m.waist - 45) * 0.52 + 7.5;
+  const loveHandle = Math.max(0, (m.waist - 76) * 0.28);
+  const flankW = ww + loveHandle;
+  const hw = Math.max(ww + loveHandle * 0.65, 24.8);
+  const uawDelta = (m.arm - 33) * 0.55;
+  const faDelta = (m.forearm - 28) * 0.68;
+  const tw = (m.thigh - 46) * 0.45 + 22.5;
+  const innerGap = Math.max(1.8, 4.8 - loveHandle * 0.5);
+
+  const outer = `
+    M ${cx} 24
+    C ${cx + 8.5} 24, ${cx + 11.5} 30.5, ${cx + 11} 39.5
+    C ${cx + 10.5} 47.5, ${cx + 8.2} 52.5, ${cx + 7.8} 56.5
+    L ${cx + 9.5} 62
+    C ${cx + 16} 64.5, ${cx + sw - 11} 66, ${cx + sw - 2.5} 71
+    C ${cx + sw + 3} 75.5, ${cx + sw + 4.5} 85, ${cx + sw + 3.2} 95
+    C ${cx + sw + 4.8 + uawDelta} 104, ${cx + sw + 5.2 + uawDelta} 113, ${cx + sw + 4.6} 121
+    C ${cx + sw + 8.2 + faDelta} 130, ${cx + sw + 9 + faDelta * 0.6} 144, ${cx + sw + 8.4} 159
+    L ${cx + sw + 9.4} 168
+    Q ${cx + sw + 5.5} 172, ${cx + sw + 2} 168
+    L ${cx + sw + 2} 159
+    C ${cx + sw - 0.8} 145, ${cx + sw - 3.2 - faDelta * 0.3} 131, ${cx + sw - 4.2} 121
+    C ${cx + sw - 5.2} 112, ${cx + cw + 3.5} 104, ${cx + cw + 1.5} 97
+    C ${cx + cw + 0.5} 111, ${cx + ww + 1.5} 126, ${cx + ww} 138
+    C ${cx + flankW} 146, ${cx + hw + 1} 153, ${cx + hw} 161
+    C ${cx + tw + 1.5} 177, ${cx + tw + 0.8} 199, ${cx + 19.5} 223
+    L ${cx + 17.5} 234
+    C ${cx + 20.5} 246, ${cx + 19.5} 259, ${cx + 14.5} 276
+    L ${cx + 17.5} 285
+    L ${cx + 8} 285
+    L ${cx + 8.6} 276
+    C ${cx + 7.6} 259, ${cx + 7.4} 245, ${cx + 8} 234
+    C ${cx + 6.5} 213, ${cx + innerGap + 1.5} 191, ${cx + 2.1} 174
+    L ${cx - 2.1} 174
+    C ${cx - innerGap - 1.5} 191, ${cx - 6.5} 213, ${cx - 8} 234
+    C ${cx - 7.4} 245, ${cx - 7.6} 259, ${cx - 8.6} 276
+    L ${cx - 8} 285
+    L ${cx - 17.5} 285
+    L ${cx - 14.5} 276
+    C ${cx - 19.5} 259, ${cx - 20.5} 246, ${cx - 17.5} 234
+    L ${cx - 19.5} 223
+    C ${cx - tw - 0.8} 199, ${cx - tw - 1.5} 177, ${cx - hw} 161
+    C ${cx - hw - 1} 153, ${cx - flankW} 146, ${cx - ww} 138
+    C ${cx - ww - 1.5} 126, ${cx - cw - 0.5} 111, ${cx - cw - 1.5} 97
+    C ${cx - cw - 3.5} 104, ${cx - sw + 5.2} 112, ${cx - sw + 4.2} 121
+    C ${cx - sw + 3.2 + faDelta * 0.3} 131, ${cx - sw + 0.8} 145, ${cx - sw - 2} 159
+    L ${cx - sw - 2} 168
+    Q ${cx - sw - 5.5} 172, ${cx - sw - 9.4} 168
+    L ${cx - sw - 8.4} 159
+    C ${cx - sw - 9 - faDelta * 0.6} 144, ${cx - sw - 8.2 - faDelta} 130, ${cx - sw - 4.6} 121
+    C ${cx - sw - 5.2 - uawDelta} 113, ${cx - sw - 4.8 - uawDelta} 104, ${cx - sw - 3.2} 95
+    C ${cx - sw - 4.5} 85, ${cx - sw - 3} 75.5, ${cx - sw + 2.5} 71
+    C ${cx - sw + 11} 66, ${cx - 16} 64.5, ${cx - 9.5} 62
+    L ${cx - 7.8} 56.5
+    C ${cx - 8.2} 52.5, ${cx - 10.5} 47.5, ${cx - 11} 39.5
+    C ${cx - 11.5} 30.5, ${cx - 8.5} 24, ${cx} 24 Z
+  `;
+
+  const pecY = isDefined ? 97 : 101;
+  const pecCurve = `
+    M ${cx - cw + 3} ${pecY - 5}
+    Q ${cx - cw * 0.48} ${pecY + 3.5}, ${cx - 2} ${pecY - 1}
+    M ${cx + cw - 3} ${pecY - 5}
+    Q ${cx + cw * 0.48} ${pecY + 3.5}, ${cx + 2} ${pecY - 1}
+  `;
+
+  const absLines = `
+    M ${cx} ${pecY + 2} L ${cx} 150
+    M ${cx - 9.5} 113 Q ${cx} 115, ${cx + 9.5} 113
+    M ${cx - 10} 125 Q ${cx} 127, ${cx + 10} 125
+    M ${cx - 9} 137 Q ${cx} 139, ${cx + 9} 137
+    M ${cx - 10.5} 107 C ${cx - 12.5} 123, ${cx - 11.5} 141, ${cx - 7.5} 154
+    M ${cx + 10.5} 107 C ${cx + 12.5} 123, ${cx + 11.5} 141, ${cx + 7.5} 154
+  `;
+
+  return { outer, pecCurve, absLines, sw: sw + 3, cw, ww: flankW, waistCore: ww, faX: sw + 9 + faDelta };
+}
+
+function lerpMetric(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function buildBlueprintSvgMarkup(cur, progress = 1.0) {
+  const sim = {
+    weight: lerpMetric(cur.weight, GOLDEN_40_TARGETS.weight, progress),
+    bf: lerpMetric(cur.bf, GOLDEN_40_TARGETS.bf, progress),
+    shoulder: lerpMetric(cur.shoulder, GOLDEN_40_TARGETS.shoulder, progress),
+    chest: lerpMetric(cur.chest, GOLDEN_40_TARGETS.chest, progress),
+    waist: lerpMetric(cur.waist, GOLDEN_40_TARGETS.waist, progress),
+    arm: lerpMetric(cur.arm, GOLDEN_40_TARGETS.arm, progress),
+    forearm: lerpMetric(cur.forearm, GOLDEN_40_TARGETS.forearm, progress),
+    thigh: lerpMetric(cur.thigh, GOLDEN_40_TARGETS.thigh, progress)
+  };
+
+  const pctInt = Math.round(progress * 100);
+  const leftCx = 74;
+  const rightCx = 228;
+  const pCur = buildBlueprintBodyPaths(leftCx, cur, false);
+  const pGhost = buildBlueprintBodyPaths(rightCx, cur, false);
+  const pSim = buildBlueprintBodyPaths(rightCx, sim, progress > 0.55);
+
+  const curRatio = (cur.shoulder / Math.max(55, cur.waist)).toFixed(2);
+  const simRatio = (sim.shoulder / Math.max(55, sim.waist)).toFixed(2);
+  const abOpacity = Math.max(0, (progress - 0.35) / 0.65) * 0.65;
+  const shPrefix = cur.measured?.shoulder ? '' : '~';
+  const waPrefix = cur.measured?.waist ? '' : '~';
+
+  return `
+    <line x1="10" y1="24" x2="346" y2="24" stroke="rgba(255,255,255,0.12)" stroke-dasharray="2 3" stroke-width="0.8" />
+    <line x1="10" y1="141" x2="346" y2="141" stroke="rgba(255,255,255,0.10)" stroke-dasharray="2 3" stroke-width="0.8" />
+    <line x1="10" y1="285" x2="346" y2="285" stroke="rgba(255,255,255,0.16)" stroke-width="1" />
+
+    <text x="${leftCx}" y="15" text-anchor="middle" fill="rgba(235,235,245,0.68)" font-size="10.2" font-weight="600">HIỆN TẠI (${cur.weight.toFixed(1)} KG)</text>
+    <text x="${rightCx}" y="15" text-anchor="middle" fill="#30D158" font-size="10.2" font-weight="700">${pctInt >= 99 ? 'CHUẨN TRƯỚC 40T' : `MÔ PHỎNG ${pctInt}%`} (${sim.weight.toFixed(1)} KG)</text>
+
+    <path d="${pCur.outer}" fill="rgba(174,174,178,0.18)" stroke="rgba(235,235,245,0.52)" stroke-width="1.35" />
+    <path d="${pCur.pecCurve}" fill="none" stroke="rgba(235,235,245,0.38)" stroke-width="1.1" />
+    <polygon points="${leftCx - pCur.sw + 4},74 ${leftCx + pCur.sw - 4},74 ${leftCx + pCur.ww},144 ${leftCx - pCur.ww},144"
+      fill="rgba(255,159,10,0.08)" stroke="#FF9F0A" stroke-dasharray="3 2" stroke-width="1" />
+
+    <line x1="${leftCx - pCur.sw + 2}" y1="74" x2="${leftCx + pCur.sw - 2}" y2="74" stroke="#FF9F0A" stroke-width="1.2" />
+    <text x="${leftCx}" y="87" text-anchor="middle" fill="#FFFFFF" font-size="9.5" font-weight="600">Vai ${shPrefix}${cur.shoulder.toFixed(0)}cm</text>
+    <line x1="${leftCx - pCur.ww}" y1="142" x2="${leftCx + pCur.ww}" y2="142" stroke="#FF453A" stroke-width="1.5" />
+    <text x="${leftCx}" y="156" text-anchor="middle" fill="#FF453A" font-size="9.5" font-weight="700">Eo ${waPrefix}${cur.waist.toFixed(0)}cm</text>
+    <text x="${leftCx}" y="301" text-anchor="middle" fill="rgba(235,235,245,0.62)" font-size="9.8" font-weight="600">Vai/Eo: ${curRatio}× (${Number(curRatio) >= 1.50 ? 'Chữ V' : 'Chữ H'})</text>
+
+    <text x="149" y="143" text-anchor="middle" fill="#30D158" font-size="14" font-weight="700">➔</text>
+
+    <path d="${pGhost.outer}" fill="rgba(255,159,10,0.20)" stroke="#FF9F0A" stroke-dasharray="3 2" stroke-width="1" />
+    <path d="${pSim.outer}" fill="rgba(48,209,88,0.22)" stroke="#30D158" stroke-width="1.65" />
+    <path d="${pSim.pecCurve}" fill="none" stroke="#30D158" stroke-opacity="0.82" stroke-width="1.3" />
+    <path d="${pSim.absLines}" fill="none" stroke="#30D158" stroke-opacity="${abOpacity.toFixed(2)}" stroke-width="1" />
+
+    <polygon points="${rightCx - pSim.sw + 3},73 ${rightCx + pSim.sw - 3},73 ${rightCx},150"
+      fill="rgba(48,209,88,0.12)" stroke="#30D158" stroke-dasharray="2 2" stroke-width="1.1" />
+
+    <line x1="${rightCx - pSim.sw + 2}" y1="73" x2="${rightCx + pSim.sw - 2}" y2="73" stroke="#30D158" stroke-width="1.4" />
+    <text x="${rightCx}" y="86" text-anchor="middle" fill="#FFFFFF" font-size="9.5" font-weight="700">Vai ${sim.shoulder.toFixed(0)}cm</text>
+
+    <line x1="${rightCx - pSim.waistCore}" y1="140" x2="${rightCx + pSim.waistCore}" y2="140" stroke="#30D158" stroke-width="1.8" />
+    <text x="${rightCx}" y="164" text-anchor="middle" fill="#30D158" font-size="9.5" font-weight="700">Eo ${sim.waist.toFixed(1)}cm</text>
+
+    <line x1="${rightCx + pSim.faX + 1}" y1="138" x2="${rightCx + pSim.faX + 10}" y2="138" stroke="#30D158" stroke-width="1" />
+    <text x="${rightCx + pSim.faX + 12}" y="135" text-anchor="start" fill="#30D158" font-size="9.2" font-weight="700">Cẳng tay</text>
+    <text x="${rightCx + pSim.faX + 12}" y="146" text-anchor="start" fill="#FFFFFF" font-size="9.5" font-weight="700">${sim.forearm.toFixed(1)}cm</text>
+
+    <line x1="${rightCx + 24}" y1="204" x2="${rightCx + 35}" y2="204" stroke="rgba(235,235,245,0.55)" stroke-width="0.9" />
+    <text x="${rightCx + 37}" y="201" text-anchor="start" fill="rgba(235,235,245,0.65)" font-size="9.0" font-weight="600">Đùi gọn</text>
+    <text x="${rightCx + 37}" y="212" text-anchor="start" fill="#FFFFFF" font-size="9.5" font-weight="700">${sim.thigh.toFixed(1)}cm</text>
+
+    <text x="${rightCx}" y="301" text-anchor="middle" fill="#30D158" font-size="9.8" font-weight="700">Chuẩn Chữ V: ${simRatio}× (Adonis)</text>
+  `;
+}
+
+function buildBlueprintRatioBarsMarkup(cur, progress = 1.0) {
+  const sim = {
+    shoulder: lerpMetric(cur.shoulder, GOLDEN_40_TARGETS.shoulder, progress),
+    chest: lerpMetric(cur.chest, GOLDEN_40_TARGETS.chest, progress),
+    waist: lerpMetric(cur.waist, GOLDEN_40_TARGETS.waist, progress),
+    arm: lerpMetric(cur.arm, GOLDEN_40_TARGETS.arm, progress),
+    forearm: lerpMetric(cur.forearm, GOLDEN_40_TARGETS.forearm, progress)
+  };
+
+  const curVRatio = cur.shoulder / Math.max(55, cur.waist);
+  const simVRatio = sim.shoulder / Math.max(55, sim.waist);
+
+  const curWHtR = cur.waist / GOLDEN_40_TARGETS.heightCm;
+  const simWHtR = sim.waist / GOLDEN_40_TARGETS.heightCm;
+
+  const curCW = cur.chest / Math.max(55, cur.waist);
+  const simCW = sim.chest / Math.max(55, sim.waist);
+
+  const simFaPct = Math.round((sim.forearm / Math.max(25, sim.arm)) * 100);
+  const isFullTarget = progress >= 0.99;
+
+  const rows = [
+    {
+      name: '1. Chữ V Vai / Eo (Adonis)',
+      valText: isFullTarget
+        ? `Hiện ${curVRatio.toFixed(2)}× → Đích 1.57×`
+        : `Mô phỏng: ${simVRatio.toFixed(2)}× / 1.57×`,
+      curPct: Math.min(100, Math.max(10, Math.round(((curVRatio - 1.15) / (1.57 - 1.15)) * 100))),
+      simPct: Math.min(100, Math.max(10, Math.round(((simVRatio - 1.15) / (1.57 - 1.15)) * 100))),
+      good: (isFullTarget ? curVRatio : simVRatio) >= 1.50
+    },
+    {
+      name: '2. Độ phẳng bụng (Eo / Cao)',
+      valText: isFullTarget
+        ? `Hiện ${curWHtR.toFixed(2)} → Đích 0.46 (${GOLDEN_40_TARGETS.waist}cm)`
+        : `Mô phỏng: ${simWHtR.toFixed(2)} (${sim.waist.toFixed(1)}cm)`,
+      curPct: Math.min(100, Math.max(10, Math.round(((0.58 - curWHtR) / (0.58 - 0.457)) * 100))),
+      simPct: Math.min(100, Math.max(10, Math.round(((0.58 - simWHtR) / (0.58 - 0.457)) * 100))),
+      good: (isFullTarget ? curWHtR : simWHtR) <= 0.47
+    },
+    {
+      name: '3. Độ dày Ngực / Eo',
+      valText: isFullTarget
+        ? `Hiện ${curCW.toFixed(2)}× → Đích 1.35×`
+        : `Mô phỏng: ${simCW.toFixed(2)}× (${sim.chest.toFixed(0)}cm)`,
+      curPct: Math.min(100, Math.max(10, Math.round(((curCW - 1.05) / (1.35 - 1.05)) * 100))),
+      simPct: Math.min(100, Math.max(10, Math.round(((simCW - 1.05) / (1.35 - 1.05)) * 100))),
+      good: (isFullTarget ? curCW : simCW) >= 1.30
+    },
+    {
+      name: '4. Cẳng tay / Bắp tay (Xắn áo)',
+      valText: isFullTarget
+        ? `Hiện ${cur.forearm.toFixed(1)} → Đích 33.0cm (90%)`
+        : `Mô phỏng: ${sim.forearm.toFixed(1)} / ${sim.arm.toFixed(1)}cm (${simFaPct}%)`,
+      curPct: Math.min(100, Math.max(12, Math.round(((cur.forearm - 27) / (33 - 27)) * 100))),
+      simPct: Math.min(100, Math.max(12, Math.round(((sim.forearm - 27) / (33 - 27)) * 100))),
+      good: (isFullTarget ? cur.forearm : sim.forearm) >= 32.0
+    }
+  ];
+
+  return rows.map(r => `
+    <div class="bp-ratio-item">
+      <div class="bp-ratio-head">
+        <span style="font-weight:500;color:var(--label-primary);">${r.name}</span>
+        <span class="tabular" style="font-weight:600;color:${r.good ? 'var(--green)' : (isFullTarget ? 'var(--green)' : 'var(--orange)')};">${r.valText}</span>
+      </div>
+      <div class="bp-ratio-track">
+        <div class="bp-ratio-sim-fill" style="width:${r.simPct}%;"></div>
+        <div class="bp-ratio-cur-fill" style="width:${r.curPct}%;background:${r.curPct >= 85 ? 'var(--green)' : 'var(--orange)'};"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function onBlueprintSlide(val) {
+  blueprintProgress = Math.max(0, Math.min(1, Number(val) / 100));
+  const cur = getCurrentBodyProfile();
+  const simW = lerpMetric(cur.weight, GOLDEN_40_TARGETS.weight, blueprintProgress).toFixed(1);
+  const simBf = Math.round(lerpMetric(cur.bf, GOLDEN_40_TARGETS.bf, blueprintProgress));
+  const pctInt = Math.round(blueprintProgress * 100);
+
+  const svgEl = document.getElementById('bpSvg');
+  if (svgEl) svgEl.innerHTML = buildBlueprintSvgMarkup(cur, blueprintProgress);
+
+  const badgeEl = document.getElementById('bpStageBadge');
+  if (badgeEl) badgeEl.textContent = `${pctInt}% · ${simW}kg (${simBf}%)`;
+
+  const barsEl = document.getElementById('bpRatioBars');
+  if (barsEl) barsEl.innerHTML = buildBlueprintRatioBarsMarkup(cur, blueprintProgress);
+}
+
+function scrollToBodyForm() {
+  hapticTap(10);
+  const sec = document.getElementById('bodyMeasureFormSection');
+  if (sec && typeof sec.scrollIntoView === 'function') {
+    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  setTimeout(() => {
+    const waistIn = document.getElementById('bmWaist');
+    if (waistIn && typeof waistIn.focus === 'function') waistIn.focus();
+  }, 360);
 }
 
 function getExerciseStats(ex, options = {}) {
@@ -1919,17 +2271,47 @@ async function syncFromGoogleSheet(silent = false) {
         if (!w || isNaN(w)) continue;
         let d = r[0] || '06/11/2026';
         if (d === '2026-06-11') d = '06/11/2026';
+        d = normalizeDateVN(d);
+        const noteStr = r[8] || '';
+        const parsedShoulder = parseFloat(r[9]) || parseShoulderFromNote(noteStr) || '';
         sheetBody.push({
           date: d,
           weight: w,
           waist: r[2] || '',
+          chest: r[3] || '',
+          arm: r[4] || '',
           forearm: r[5] || '',
-          note: r[8] || ''
+          thigh: r[6] || '',
+          bf: r[7] || '',
+          shoulder: parsedShoulder,
+          note: noteStr
         });
       }
       if (sheetBody.length > 0) {
         const localBodyExtra = state.body.filter(b => b.isLocal);
-        state.body = [...sheetBody, ...localBodyExtra];
+        const mergedBody = [...sheetBody];
+        localBodyExtra.forEach(loc => {
+          const normLocDate = normalizeDateVN(loc.date);
+          const idx = mergedBody.findIndex(sb => normalizeDateVN(sb.date) === normLocDate);
+          if (idx === -1) {
+            mergedBody.push(loc);
+          } else {
+            mergedBody[idx] = {
+              ...mergedBody[idx],
+              weight: loc.weight || mergedBody[idx].weight,
+              waist: loc.waist || mergedBody[idx].waist,
+              shoulder: loc.shoulder || mergedBody[idx].shoulder,
+              chest: loc.chest || mergedBody[idx].chest,
+              arm: loc.arm || mergedBody[idx].arm,
+              forearm: loc.forearm || mergedBody[idx].forearm,
+              thigh: loc.thigh || mergedBody[idx].thigh,
+              bf: loc.bf || mergedBody[idx].bf,
+              note: loc.note || mergedBody[idx].note,
+              isLocal: true
+            };
+          }
+        });
+        state.body = mergedBody;
       }
     }
 
@@ -2286,27 +2668,67 @@ function copyLogsTSV() {
 }
 
 async function submitBodyMeasurement() {
-  const w = parseFloat(document.getElementById('bmWeight')?.value);
-  if (!w || isNaN(w)) {
-    showToast('Vui lòng nhập cân nặng (kg)');
+  const readNumStr = (id) => {
+    const raw = String(document.getElementById(id)?.value || '').replace(',', '.').trim();
+    const n = parseFloat(raw);
+    return (!isNaN(n) && n > 0) ? String(Number(n.toFixed(1))) : '';
+  };
+
+  const curProfile = getCurrentBodyProfile();
+  const rawWeightStr = readNumStr('bmWeight');
+  const waist = readNumStr('bmWaist');
+  const shoulder = readNumStr('bmShoulder');
+  const chest = readNumStr('bmChest');
+  const forearm = readNumStr('bmForearm');
+  const arm = readNumStr('bmArm');
+  const thigh = readNumStr('bmThigh');
+  const bf = readNumStr('bmBf');
+  const rawNote = String(document.getElementById('bmNote')?.value || '').trim();
+
+  const hasCircumference = Boolean(waist || shoulder || chest || forearm || arm || thigh || bf);
+  if (!rawWeightStr && !hasCircumference) {
+    showToast('Vui lòng nhập cân nặng hoặc ít nhất 1 số đo (cm)');
     return;
   }
+
+  const w = rawWeightStr ? parseFloat(rawWeightStr) : curProfile.weight;
+  const todayKey = getTodayDateKey();
+  let noteToSave = rawNote;
+  if (shoulder && !/Vai[:\s]/i.test(noteToSave)) {
+    noteToSave = noteToSave ? `${noteToSave} · Vai: ${shoulder}cm` : `Vai: ${shoulder}cm`;
+  }
+
+  const existingIdx = state.body.findIndex(b => normalizeDateVN(b.date) === todayKey);
+  const prevToday = existingIdx >= 0 ? state.body[existingIdx] : {};
+
   const entry = {
-    date: getTodayDateKey(),
+    date: todayKey,
     weight: w,
-    waist: document.getElementById('bmWaist')?.value || '',
-    forearm: document.getElementById('bmForearm')?.value || '',
-    note: document.getElementById('bmNote')?.value || '',
+    waist: waist || prevToday.waist || '',
+    shoulder: shoulder || prevToday.shoulder || '',
+    chest: chest || prevToday.chest || '',
+    arm: arm || prevToday.arm || '',
+    forearm: forearm || prevToday.forearm || '',
+    thigh: thigh || prevToday.thigh || '',
+    bf: bf || prevToday.bf || '',
+    note: noteToSave || prevToday.note || '',
     isLocal: true
   };
-  state.body.push(entry);
+
+  if (existingIdx >= 0) {
+    state.body[existingIdx] = entry;
+  } else {
+    state.body.push(entry);
+  }
+
+  hapticTap(15);
   saveState();
   render();
 
   if (state.webhookUrl) {
     postWebhookPayload({ action: 'appendBody', data: entry });
   }
-  showToast(`Đã lưu cân nặng ${w} kg`);
+  showToast('✓ Đã lưu số đo & cập nhật Bản vẽ Chuẩn 40t');
 }
 
 async function submitCardioLog() {
@@ -2616,7 +3038,8 @@ function renderTodayTab() {
 
 function renderProgressTab() {
   const startWeight = 78.0;
-  const targetWeight = 62.0;
+  const targetWeight = GOLDEN_40_TARGETS.weight;
+  const curProfile = getCurrentBodyProfile();
   const latestBody = state.body[state.body.length - 1] || { weight: 74.0 };
   const currentW = Number(latestBody.weight) || 74.0;
   const lost = Math.max(0, startWeight - currentW);
@@ -2724,11 +3147,14 @@ function renderProgressTab() {
   }).join('');
 
   return `
-    <div class="apple-card">
-      <div class="ex-slot-tag">MỤC TIÊU HÌNH THỂ · 1M63 · BMI ${bmi}</div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:4px;">
+    <div class="apple-card" onclick="switchTab('cardio')" style="cursor:pointer;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div class="ex-slot-tag" style="margin-bottom:0;">MỤC TIÊU HÌNH THỂ · 1M63 · BMI ${bmi}</div>
+        <span style="font-size:11.5px;font-weight:600;color:var(--green);" class="tabular">Bản vẽ 40t (${curProfile.goldenReadinessPct}%) →</span>
+      </div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:6px;">
         <div style="font-size:28px;font-weight:700;letter-spacing:-0.025em;" class="tabular">${currentW} <span style="font-size:16px;font-weight:500;color:var(--label-secondary);">kg</span></div>
-        <div style="font-size:13px;color:var(--green);font-weight:600;" class="tabular">Đích: ${targetWeight} kg (−${(currentW - targetWeight).toFixed(1)} kg)</div>
+        <div style="font-size:13px;color:var(--green);font-weight:600;" class="tabular">Đích 40t: ${targetWeight.toFixed(1)} kg (−${Math.max(0, currentW - targetWeight).toFixed(1)} kg)</div>
       </div>
       <div class="apple-progress-track">
         <div class="apple-progress-fill" style="width:${pct}%;"></div>
@@ -2790,12 +3216,13 @@ function renderCardioBodyTab() {
   const bt = { ...DEFAULT_BODY_TARGETS_3M, ...(state.bodyTargets3M || {}) };
   const et = { ...DEFAULT_EX_TARGETS_3M, ...(state.exTargets3M || {}) };
   const energy = calculateEnergyStats();
+  const curProfile = getCurrentBodyProfile();
 
   const latestBody = state.body[state.body.length - 1] || { weight: 74.0, waist: '', forearm: '' };
   const currentW = Number(latestBody.weight) || 74.0;
   const startW = bt.startWeight || 78.0;
   const target3MW = bt.month3Weight || 65.0;
-  const finalW = bt.finalWeight || 62.0;
+  const finalW = bt.finalWeight || GOLDEN_40_TARGETS.weight;
 
   // Progress toward 3-Month Weight Target (78kg -> 65kg)
   const lostSoFar = Math.max(0, startW - currentW);
@@ -2804,12 +3231,100 @@ function renderCardioBodyTab() {
   const remain3MW = Math.max(0, (currentW - target3MW)).toFixed(1);
 
   // Latest logged waist & forearm & max run distance
-  const latestWithWaist = [...state.body].reverse().find(b => Number(b.waist) > 0);
-  const currentWaist = latestWithWaist ? Number(latestWithWaist.waist) : null;
-  const latestWithForearm = [...state.body].reverse().find(b => Number(b.forearm) > 0);
-  const currentForearm = latestWithForearm ? Number(latestWithForearm.forearm) : null;
+  const currentWaist = curProfile.measured.waist ? curProfile.waist : null;
+  const currentForearm = curProfile.measured.forearm ? curProfile.forearm : null;
   const maxRunKm = state.cardioLogs.reduce((m, c) => Math.max(m, Number(c.dist) || 0), 0);
   const runPct = Math.min(100, Math.round((maxRunKm / (bt.targetRunKm || 5.0)) * 100));
+
+  // Blueprint SVG & Live Slider Initial State
+  const simWInit = lerpMetric(curProfile.weight, GOLDEN_40_TARGETS.weight, blueprintProgress).toFixed(1);
+  const simBfInit = Math.round(lerpMetric(curProfile.bf, GOLDEN_40_TARGETS.bf, blueprintProgress));
+  const sliderInt = Math.round(blueprintProgress * 100);
+  const svgMarkup = buildBlueprintSvgMarkup(curProfile, blueprintProgress);
+  const ratioBarsMarkup = buildBlueprintRatioBarsMarkup(curProfile, blueprintProgress);
+
+  const badgeTag = (isMeasured) => isMeasured
+    ? '<span class="bp-tag-measured">✓ Đã đo</span>'
+    : '<span class="bp-tag-est">Ước tính</span>';
+
+  const zoneSpecs = [
+    {
+      title: 'Cân nặng & % Mỡ',
+      tag: badgeTag(curProfile.measured.weight),
+      curStr: `${curProfile.weight.toFixed(1)} kg · ${curProfile.measured.bf ? '' : '~'}${curProfile.bf.toFixed(0)}%`,
+      targetStr: `${GOLDEN_40_TARGETS.weight.toFixed(1)} kg · ${GOLDEN_40_TARGETS.bf}%`,
+      sub: `FFMI ~20.8 · Rõ 4–6 múi, mặt góc cạnh · Chạm xem Calo`,
+      action: `openActivitySheet()`
+    },
+    {
+      title: 'Vòng Eo (ngang rốn)',
+      tag: badgeTag(curProfile.measured.waist),
+      curStr: `${curProfile.measured.waist ? '' : '~'}${curProfile.waist.toFixed(1)} cm`,
+      targetStr: `${GOLDEN_40_TARGETS.waist.toFixed(1)} cm`,
+      sub: `Eo/Cao 0.46 (Đòn bẩy #1 kéo dài chân) · EX12 Gập bụng`,
+      action: `openDetailSheet('EX12')`
+    },
+    {
+      title: 'Vòng Vai ngang',
+      tag: badgeTag(curProfile.measured.shoulder),
+      curStr: `${curProfile.measured.shoulder ? '' : '~'}${curProfile.shoulder.toFixed(1)} cm`,
+      targetStr: `${GOLDEN_40_TARGETS.shoulder.toFixed(1)} cm`,
+      sub: `Vai/Eo 1.57× (Chữ V Adonis) · EX10 Bay vai + EX04 Multi Press`,
+      action: `openDetailSheet('EX10')`
+    },
+    {
+      title: 'Vòng Ngực & Xô',
+      tag: badgeTag(curProfile.measured.chest),
+      curStr: `${curProfile.measured.chest ? '' : '~'}${curProfile.chest.toFixed(1)} cm`,
+      targetStr: `${GOLDEN_40_TARGETS.chest.toFixed(1)} cm`,
+      sub: `Ngực/Eo 1.35× · EX08 Ngực trên + EX03 Kéo xô`,
+      action: `openDetailSheet('EX08')`
+    },
+    {
+      title: 'Cẳng tay / Bắp tay',
+      tag: badgeTag(curProfile.measured.forearm),
+      curStr: `${curProfile.measured.forearm ? '' : '~'}${curProfile.forearm.toFixed(1)} / ${curProfile.arm.toFixed(1)}`,
+      targetStr: `${GOLDEN_40_TARGETS.forearm.toFixed(1)} / ${GOLDEN_40_TARGETS.arm.toFixed(1)} cm`,
+      sub: `Cẳng tay = 90% Bắp tay · EX14 Farmer Hold + EX11 Cuộn búa`,
+      action: `openDetailSheet('EX14')`
+    },
+    {
+      title: 'Vòng Đùi săn gọn',
+      tag: badgeTag(curProfile.measured.thigh),
+      curStr: `${curProfile.measured.thigh ? '' : '~'}${curProfile.thigh.toFixed(1)} cm`,
+      targetStr: `${GOLDEN_40_TARGETS.thigh.toFixed(1)} cm`,
+      sub: `Gọt mỡ đùi trong, cơ đặc quần Âu đẹp · EX01 Leg Press 240kg`,
+      action: `openDetailSheet('EX01')`
+    }
+  ];
+
+  const zoneRowsHtml = zoneSpecs.map(z => `
+    <div class="ios-row" onclick="${z.action}" style="cursor:pointer;align-items:flex-start;">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:14.5px;font-weight:600;">${z.title}</span>
+          ${z.tag}
+        </div>
+        <div style="font-size:12px;color:var(--label-secondary);margin-top:3px;line-height:1.35;">${z.sub}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;" class="tabular">
+        <div style="font-size:14.5px;font-weight:700;color:var(--green);">${z.targetStr}</div>
+        <div style="font-size:11.5px;color:var(--label-secondary);margin-top:2px;">Hiện: ${z.curStr}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Active stage detection among 3 Phases before Age 40 (2026-2029)
+  const activePhase = currentW > 65.0 ? 1 : (curProfile.goldenReadinessPct < 92 ? 2 : 3);
+  const phaseBadge = (num) => {
+    if (num === activePhase) {
+      return '<span class="bp-stage-badge" style="background:var(--green-dim);color:var(--green);">● Đang thực thi</span>';
+    }
+    if (num < activePhase) {
+      return '<span class="bp-stage-badge" style="background:rgba(10,132,255,0.16);color:var(--blue);">✓ Đã qua</span>';
+    }
+    return '<span class="bp-stage-badge" style="background:var(--bg-tertiary);color:var(--label-secondary);">Kế tiếp</span>';
+  };
 
   // Calculate overall 3-month strength target completion across all 14 exercises
   let sumStrengthPct = 0;
@@ -2844,23 +3359,117 @@ function renderCardioBodyTab() {
 
   const avgStrengthPct = Math.round(sumStrengthPct / EXERCISES.length);
 
-  const bodyRows = [...state.body].reverse().slice(0, 5).map(b => `
-    <div class="ios-row">
-      <div>
-        <div style="font-size:15px;font-weight:600;" class="tabular">${b.date}</div>
-        <div style="font-size:12px;color:var(--label-secondary);">${b.note || 'Đo định kỳ'}</div>
+  const bodyRows = [...state.body].reverse().slice(0, 6).map(b => {
+    const shVal = b.shoulder || parseShoulderFromNote(b.note);
+    const parts = [];
+    if (b.waist) parts.push(`Eo ${b.waist}`);
+    if (shVal) parts.push(`Vai ${shVal}`);
+    if (b.chest) parts.push(`Ngực ${b.chest}`);
+    if (b.forearm) parts.push(`Cẳng ${b.forearm}`);
+    if (b.arm) parts.push(`Tay ${b.arm}`);
+    if (b.thigh) parts.push(`Đùi ${b.thigh}`);
+    if (b.bf) parts.push(`${b.bf}% mỡ`);
+    return `
+      <div class="ios-row">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:15px;font-weight:600;" class="tabular">${b.date}</div>
+          <div style="font-size:12px;color:var(--label-secondary);margin-top:1px;">${b.note || 'Đo định kỳ'}</div>
+        </div>
+        <div style="text-align:right;" class="tabular">
+          <div style="font-size:16px;font-weight:700;color:var(--green);">${b.weight} kg</div>
+          ${parts.length > 0 ? `<div style="font-size:11px;color:var(--label-secondary);margin-top:1px;">${parts.join(' · ')}</div>` : ''}
+        </div>
       </div>
-      <div style="text-align:right;" class="tabular">
-        <div style="font-size:16px;font-weight:700;color:var(--green);">${b.weight} kg</div>
-        ${b.waist || b.forearm ? `<div style="font-size:11px;color:var(--label-secondary);">${b.waist ? `Eo ${b.waist}cm ` : ''}${b.forearm ? `Cẳng tay ${b.forearm}cm` : ''}</div>` : ''}
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   return `
-    <!-- 1. Minimalist Hero Card: 3-Month Weight Target -->
+    <!-- 0. Centerpiece: Age-40 Golden Ratio Interactive Blueprint (1m63) -->
     <div class="apple-card">
-      <div class="ex-slot-tag">MỤC TIÊU CÂN NẶNG 3 THÁNG</div>
+      <div class="bp-card-head">
+        <div>
+          <div class="ex-slot-tag">CHUẨN FORM TRƯỚC 40 TUỔI · NAM 1M63</div>
+          <div class="ex-name">Hiện tại vs Tỷ lệ vàng Chữ V</div>
+          <div class="ex-sub tabular">37 tuổi (${currentW.toFixed(1)}kg) → Đích 40 tuổi (${GOLDEN_40_TARGETS.weight.toFixed(1)}kg · 13% mỡ)</div>
+        </div>
+        <div class="bp-readiness-pill tabular">Đạt ${curProfile.goldenReadinessPct}%</div>
+      </div>
+
+      <div class="bp-canvas-box">
+        <svg id="bpSvg" viewBox="0 0 356 308" class="bp-svg">${svgMarkup}</svg>
+        <div class="bp-legend-row">
+          <span class="bp-legend-item"><span class="bp-swatch-fat"></span>Mỡ eo & đùi gọt bỏ</span>
+          <span class="bp-legend-item"><span class="bp-swatch-muscle"></span>Cơ Vai · Xô · Cẳng tay</span>
+        </div>
+      </div>
+
+      <div class="bp-slider-row">
+        <span class="bp-slider-lbl">Kéo biến đổi:</span>
+        <input id="bpRangeSlider" type="range" min="0" max="100" value="${sliderInt}" oninput="onBlueprintSlide(this.value)" class="bp-range" aria-label="Thanh trượt mô phỏng tỷ lệ cơ thể">
+        <span id="bpStageBadge" class="bp-stage-pill tabular">${sliderInt}% · ${simWInit}kg (${simBfInit}%)</span>
+      </div>
+
+      <div id="bpRatioBars" class="bp-ratio-list">
+        ${ratioBarsMarkup}
+      </div>
+
+      <div class="bp-card-foot">
+        <div style="font-size:12px;color:var(--label-secondary);" class="tabular">
+          Đã đo thật: <strong style="color:var(--label-primary);">${curProfile.measuredCount}/7</strong> chỉ số ${curProfile.measuredCount < 4 ? '(còn lại đang ước tính)' : ''}
+        </div>
+        <button class="af-pill active-green" onclick="scrollToBodyForm()">Nhập số đo ↓</button>
+      </div>
+    </div>
+
+    <!-- 0B. 6 Body Zones & Sculpting Exercises -->
+    <div class="section-header">
+      <span class="section-title">Thông số 6 vùng & Bài tập đúc form</span>
+      <span class="section-meta">Chạm mở máy tập</span>
+    </div>
+    <div class="ios-list">
+      ${zoneRowsHtml}
+    </div>
+
+    <!-- 0C. 3-Stage Roadmap Before Age 40 (2026 - 2029) -->
+    <div class="section-header">
+      <span class="section-title">Lộ trình 3 chặng trước tuổi 40</span>
+      <span class="section-meta">2026 – 2029</span>
+    </div>
+    <div class="ios-list">
+      <div class="ios-row" style="align-items:flex-start;flex-direction:column;gap:5px;">
+        <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <span style="font-size:15px;font-weight:700;">Chặng 1 · Gọt Mỡ Mở Khung Chữ V (Tuổi 37)</span>
+          ${phaseBadge(1)}
+        </div>
+        <div style="font-size:12.5px;color:var(--label-secondary);line-height:1.42;" class="tabular">
+          6–8 tháng đầu: Đưa cân nặng <strong>74.0 → 64.5 kg</strong>, thu vòng eo xuống <strong>76 cm</strong>. Ăn ~${energy.recIntakeForCut.toLocaleString('vi-VN')} kcal (khóa <strong>135g Đạm/ngày</strong>), giữ 9 Bài Chuẩn + Chạy sáng Zone 2 + Ngủ 23:00–05:00.
+        </div>
+      </div>
+
+      <div class="ios-row" style="align-items:flex-start;flex-direction:column;gap:5px;">
+        <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <span style="font-size:15px;font-weight:700;">Chặng 2 · Đúc Cơ Sắc Nét Recomp (Tuổi 38)</span>
+          ${phaseBadge(2)}
+        </div>
+        <div style="font-size:12.5px;color:var(--label-secondary);line-height:1.42;" class="tabular">
+          12 tháng tiếp: Cân đứng đẹp ở <strong>63.0 kg (13% mỡ)</strong>, Eo <strong>74.5 cm</strong>, đắp +2kg cơ nạc vào Vai (<strong>117 cm</strong>), Ngực trên (<strong>100.5 cm</strong>), Cẳng tay (<strong>33 cm</strong>) & đẩy Leg Press cán mốc <strong>240 kg</strong>.
+        </div>
+      </div>
+
+      <div class="ios-row" style="align-items:flex-start;flex-direction:column;gap:5px;">
+        <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <span style="font-size:15px;font-weight:700;">Chặng 3 · Khóa Đỉnh Cao U40 Top 1% (39–40+)</span>
+          ${phaseBadge(3)}
+        </div>
+        <div style="font-size:12.5px;color:var(--label-secondary);line-height:1.42;" class="tabular">
+          Duy trì bền vững <strong>12.5–13.5% mỡ</strong> quanh năm (không ép khô kiệt &lt;9%), giữ mặt góc cạnh, 4–6 múi bụng rõ nét, nội tiết Testosterone & năng lượng làm việc đỉnh cao.
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. Minimalist Hero Card: Short-Term 3-Month Weight Target -->
+    <div class="apple-card">
+      <div class="ex-slot-tag">MỤC TIÊU NGẮN HẠN · CÂN NẶNG 3 THÁNG</div>
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:4px;">
         <div>
           <span style="font-size:12px;color:var(--label-secondary);">Hiện tại</span>
@@ -2881,14 +3490,14 @@ function renderCardioBodyTab() {
       </div>
 
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--label-secondary);" class="tabular">
-        <span>T1: ${bt.month1Weight}kg · T2: ${bt.month2Weight}kg · T3: ${target3MW}kg · Đích: ${finalW}kg</span>
+        <span>T1: ${bt.month1Weight}kg · T2: ${bt.month2Weight}kg · T3: ${target3MW}kg · Đích 40t: ${finalW}kg</span>
         <span style="color:var(--green);font-weight:600;">Còn −${remain3MW} kg</span>
       </div>
     </div>
 
     <!-- 2. Clean iOS Grouped List: Daily Energy, Steps & Body Targets -->
     <div class="section-header">
-      <span class="section-title">Chỉ số cơ thể & Năng lượng</span>
+      <span class="section-title">Chỉ số năng lượng & Kỷ luật ngày</span>
       <span class="section-meta">Đạt ${avgStrengthPct}% sức mạnh</span>
     </div>
     <div class="ios-list tabular">
@@ -2904,11 +3513,11 @@ function renderCardioBodyTab() {
         <input type="text" inputmode="numeric" id="targetStepGoal" value="${energy.stepGoal}" onchange="updateBodyTarget3M('stepGoal', this.value)">
       </div>
       <div class="ios-input-row">
-        <label for="targetWaistInput">Vòng eo đích (cm) ${currentWaist ? `· Hiện ${currentWaist}` : ''}</label>
+        <label for="targetWaistInput">Vòng eo đích 40t (cm) ${currentWaist ? `· Hiện ${currentWaist}` : ''}</label>
         <input type="text" inputmode="decimal" id="targetWaistInput" value="${bt.targetWaist}" onchange="updateBodyTarget3M('targetWaist', this.value)">
       </div>
       <div class="ios-input-row">
-        <label for="targetForearmInput">Cẳng tay đích (cm) ${currentForearm ? `· Hiện ${currentForearm}` : ''}</label>
+        <label for="targetForearmInput">Cẳng tay đích 40t (cm) ${currentForearm ? `· Hiện ${currentForearm}` : ''}</label>
         <input type="text" inputmode="decimal" id="targetForearmInput" value="${bt.targetForearm}" onchange="updateBodyTarget3M('targetForearm', this.value)">
       </div>
       <div class="ios-row">
@@ -2917,40 +3526,51 @@ function renderCardioBodyTab() {
       </div>
     </div>
 
-    <!-- 3. 3-Month Exercise Strength Targets (All 14 Lifts) -->
-    <div class="section-header">
-      <span class="section-title">Target 3 tháng · ${EXERCISES.length} bài tập</span>
-      <span class="section-meta">Chạm số kg để chỉnh đích</span>
+    <!-- 3. Quick Body Measurement Update (Full Golden Ratio Tape Inputs) -->
+    <div id="bodyMeasureFormSection" class="section-header">
+      <span class="section-title">Cập nhật cân nặng & số đo thước dây</span>
+      <span class="section-meta">Cập nhật Bản vẽ & Sheet</span>
     </div>
-    <div class="ios-list">
-      ${exTargetRows}
-    </div>
-
-    <!-- 4. Quick Body Measurement Update -->
-    <div class="section-header">
-      <span class="section-title">Cập nhật cân nặng & số đo hôm nay</span>
-      <span class="section-meta">Đồng bộ Sheet</span>
-    </div>
-    <div class="ios-list">
+    <div class="ios-list tabular">
       <div class="ios-input-row">
         <label for="bmWeight">Cân nặng hôm nay (kg)</label>
         <input type="text" inputmode="decimal" id="bmWeight" placeholder="${currentW}">
       </div>
       <div class="ios-input-row">
-        <label for="bmWaist">Vòng eo (cm)</label>
-        <input type="text" inputmode="decimal" id="bmWaist" placeholder="81.0">
+        <label for="bmWaist">Vòng eo ngang rốn (cm)</label>
+        <input type="text" inputmode="decimal" id="bmWaist" placeholder="${curProfile.waist} (Đích 74.5)">
       </div>
       <div class="ios-input-row">
-        <label for="bmForearm">Chu vi Cẳng tay (cm)</label>
-        <input type="text" inputmode="decimal" id="bmForearm" placeholder="31.5">
+        <label for="bmShoulder">Vòng vai ngang (cm)</label>
+        <input type="text" inputmode="decimal" id="bmShoulder" placeholder="${curProfile.shoulder} (Đích 117.0)">
+      </div>
+      <div class="ios-input-row">
+        <label for="bmChest">Vòng ngực (cm)</label>
+        <input type="text" inputmode="decimal" id="bmChest" placeholder="${curProfile.chest} (Đích 100.5)">
+      </div>
+      <div class="ios-input-row">
+        <label for="bmForearm">Cẳng tay gồng (cm)</label>
+        <input type="text" inputmode="decimal" id="bmForearm" placeholder="${curProfile.forearm} (Đích 33.0)">
+      </div>
+      <div class="ios-input-row">
+        <label for="bmArm">Bắp tay gồng (cm)</label>
+        <input type="text" inputmode="decimal" id="bmArm" placeholder="${curProfile.arm} (Đích 36.5)">
+      </div>
+      <div class="ios-input-row">
+        <label for="bmThigh">Vòng đùi (cm)</label>
+        <input type="text" inputmode="decimal" id="bmThigh" placeholder="${curProfile.thigh} (Đích 55.5)">
+      </div>
+      <div class="ios-input-row">
+        <label for="bmBf">% Mỡ ước tính (tùy chọn)</label>
+        <input type="text" inputmode="decimal" id="bmBf" placeholder="${curProfile.bf} (Đích 13%)">
       </div>
       <div class="ios-input-row">
         <label for="bmNote">Ghi chú</label>
-        <input type="text" id="bmNote" placeholder="Gọn bụng, nổi gân" style="width:180px;">
+        <input type="text" id="bmNote" placeholder="Đo sáng bụng đói" style="width:175px;">
       </div>
     </div>
     <button class="btn-primary-apple" style="margin-bottom:20px;" onclick="submitBodyMeasurement()">
-      Lưu chỉ số cơ thể hôm nay
+      Lưu số đo & Cập nhật Bản vẽ 40t
     </button>
 
     <div class="section-header">
@@ -2958,6 +3578,15 @@ function renderCardioBodyTab() {
     </div>
     <div class="ios-list">
       ${bodyRows}
+    </div>
+
+    <!-- 4. 3-Month Exercise Strength Targets (All 14 Lifts) -->
+    <div class="section-header">
+      <span class="section-title">Target 3 tháng · ${EXERCISES.length} bài tập</span>
+      <span class="section-meta">Chạm số kg để chỉnh đích</span>
+    </div>
+    <div class="ios-list">
+      ${exTargetRows}
     </div>
 
     <!-- 5. Check-in Chạy bộ Zone 2 -->
@@ -3061,10 +3690,10 @@ async function saveWebhookUrl() {
 
 async function copyAppsScriptCode() {
   try {
-    const res = await fetch('./google-apps-script.gs?v=27', { cache: 'no-store' });
+    const res = await fetch('./google-apps-script.gs?v=28', { cache: 'no-store' });
     const code = await res.text();
     await navigator.clipboard.writeText(code);
-    showToast('Đã sao chép mã Google Apps Script v27');
+    showToast('Đã sao chép mã Google Apps Script v28');
   } catch (e) {
     showToast('Mở file google-apps-script.gs để chép mã');
   }
@@ -3113,7 +3742,7 @@ function render() {
   const titles = {
     today: 'Tập luyện',
     progress: 'Tiến độ',
-    cardio: 'Mục tiêu 3 Tháng',
+    cardio: 'Mục tiêu & Form 40t',
     library: 'Thư viện'
   };
   if (titleEl) titleEl.textContent = titles[state.activeTab] || 'Hôm nay';
@@ -3157,7 +3786,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=27', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=28', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
