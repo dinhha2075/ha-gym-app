@@ -1070,6 +1070,298 @@ function scrollToBodyForm() {
   }, 360);
 }
 
+// ============================================================================
+// 2AA. WEEKLY STREAK ENGINE (MIN 3 SESSIONS/WEEK × MIN 3 EXERCISES/SESSION)
+// ============================================================================
+const STREAK_MIN_EX_PER_SESSION = 3;
+const STREAK_MIN_SESSIONS_PER_WEEK = 3;
+
+function parseDateVN(raw) {
+  if (raw instanceof Date) {
+    return new Date(raw.getFullYear(), raw.getMonth(), raw.getDate(), 12, 0, 0, 0);
+  }
+  const norm = normalizeDateVN(raw);
+  const m = norm.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  const dd = parseInt(m[1], 10);
+  const mm = parseInt(m[2], 10);
+  const yyyy = parseInt(m[3], 10);
+  const d = new Date(yyyy, mm - 1, dd, 12, 0, 0, 0);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function getMondayOfWeek(d) {
+  const copy = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0, 0);
+  const isoDay = copy.getDay() === 0 ? 7 : copy.getDay();
+  copy.setDate(copy.getDate() - (isoDay - 1));
+  return copy;
+}
+
+function calculateStreakStats(refDateOverride = null) {
+  const refParsed = refDateOverride ? parseDateVN(refDateOverride) : null;
+  const nowRef = refParsed || new Date();
+  const todayNoon = new Date(nowRef.getFullYear(), nowRef.getMonth(), nowRef.getDate(), 12, 0, 0, 0);
+  const todayKey = formatDateVN(todayNoon);
+
+  // Build map: DD/MM/YYYY -> Set of distinct completed exercise names
+  const dayExMap = new Map();
+  let earliestDate = todayNoon;
+
+  (state.logs || []).forEach(l => {
+    if (Number(l.weight) <= 0 && Number(l.reps) <= 0) return;
+    let dKey = normalizeDateVN(l.date);
+    if (dKey === '10/01/2026' && String(l.week) === '2') dKey = '01/10/2026';
+    const dObj = parseDateVN(dKey);
+    if (!dObj || dObj.getTime() > todayNoon.getTime()) return;
+    if (dObj.getTime() < earliestDate.getTime()) earliestDate = dObj;
+
+    const exName = String(l.exercise || '').trim();
+    if (!exName) return;
+    if (!dayExMap.has(dKey)) dayExMap.set(dKey, new Set());
+    dayExMap.get(dKey).add(exName);
+  });
+
+  const currentMonday = getMondayOfWeek(todayNoon);
+  const eightWeeksAgoMonday = new Date(currentMonday.getTime());
+  eightWeeksAgoMonday.setDate(eightWeeksAgoMonday.getDate() - 7 * 7);
+
+  let startMonday = getMondayOfWeek(earliestDate);
+  if (startMonday.getTime() > eightWeeksAgoMonday.getTime()) {
+    startMonday = eightWeeksAgoMonday;
+  }
+
+  const dayNames = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+  const allWeeks = [];
+  const cursor = new Date(startMonday.getTime());
+
+  while (cursor.getTime() <= currentMonday.getTime()) {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const dObj = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + i, 12, 0, 0, 0);
+      const dStr = formatDateVN(dObj);
+      const exCount = dayExMap.has(dStr) ? dayExMap.get(dStr).size : 0;
+      days.push({
+        label: dayNames[i],
+        dateStr: dStr,
+        dd: dStr.slice(0, 2),
+        ddmm: dStr.slice(0, 5),
+        exCount,
+        isValid: exCount >= STREAK_MIN_EX_PER_SESSION,
+        isPartial: exCount > 0 && exCount < STREAK_MIN_EX_PER_SESSION,
+        isToday: dStr === todayKey,
+        isFuture: dObj.getTime() > todayNoon.getTime()
+      });
+    }
+
+    const validSessions = days.filter(d => d.isValid).length;
+    const totalExercises = days.reduce((s, d) => s + d.exCount, 0);
+    allWeeks.push({
+      mondayKey: days[0].dateStr,
+      rangeShort: `${days[0].ddmm}–${days[6].ddmm}`,
+      days,
+      validSessions,
+      totalExercises,
+      qualified: validSessions >= STREAK_MIN_SESSIONS_PER_WEEK,
+      isCurrent: cursor.getTime() === currentMonday.getTime()
+    });
+
+    cursor.setDate(cursor.getDate() + 7);
+  }
+
+  let bestStreakWeeks = 0;
+  let run = 0;
+  allWeeks.forEach(w => {
+    run = w.qualified ? run + 1 : 0;
+    if (run > bestStreakWeeks) bestStreakWeeks = run;
+  });
+
+  let totalValidSessions = 0;
+  dayExMap.forEach(exSet => {
+    if (exSet.size >= STREAK_MIN_EX_PER_SESSION) totalValidSessions++;
+  });
+
+  const thisWeek = allWeeks[allWeeks.length - 1];
+  let priorConsecutive = 0;
+  for (let i = allWeeks.length - 2; i >= 0; i--) {
+    if (allWeeks[i].qualified) priorConsecutive++;
+    else break;
+  }
+
+  const todayIsoDay = todayNoon.getDay() === 0 ? 7 : todayNoon.getDay();
+  const todayExCount = dayExMap.has(todayKey) ? dayExMap.get(todayKey).size : 0;
+  const todayIsValid = todayExCount >= STREAK_MIN_EX_PER_SESSION;
+  const neededSessions = Math.max(0, STREAK_MIN_SESSIONS_PER_WEEK - thisWeek.validSessions);
+  const remainingDaysAfterToday = 7 - todayIsoDay;
+  const maxPossibleAdditionalSessions = (todayIsValid ? 0 : 1) + remainingDaysAfterToday;
+  const canStillQualifyThisWeek = neededSessions <= maxPossibleAdditionalSessions;
+
+  let currentStreakWeeks = 0;
+  let streakState = 'BUILDING';
+  let shortHint = '';
+
+  if (thisWeek.qualified) {
+    currentStreakWeeks = priorConsecutive + 1;
+    streakState = 'LOCKED';
+    shortHint = `✓ Đã khóa chuẩn tuần (${thisWeek.validSessions}/3 buổi hợp lệ)`;
+  } else if (priorConsecutive > 0 && canStillQualifyThisWeek) {
+    currentStreakWeeks = priorConsecutive;
+    if (neededSessions === maxPossibleAdditionalSessions) {
+      streakState = 'URGENT';
+      shortHint = neededSessions === 1 && todayIsoDay === 7
+        ? '⚠️ Hạn chót CN: Tập ≥3 bài hôm nay để giữ chuỗi!'
+        : `⚠️ Phải tập đủ ${neededSessions} ngày còn lại để giữ chuỗi!`;
+    } else {
+      streakState = 'ACTIVE_PENDING';
+      shortHint = `Tuần này ${thisWeek.validSessions}/3 buổi · Còn ${neededSessions} buổi để nối chuỗi`;
+    }
+  } else if (!canStillQualifyThisWeek) {
+    currentStreakWeeks = 0;
+    streakState = priorConsecutive > 0 ? 'BROKEN_THIS_WEEK' : 'MISSED_WEEK';
+    shortHint = todayIsValid
+      ? `✓ Đã chốt buổi hôm nay (${todayExCount} bài) · Thứ 2 mở Chuỗi Tuần 1`
+      : `Hết quỹ ngày tuần này (${thisWeek.validSessions}/3) · Tập ≥3 bài lấy đà Thứ 2`;
+  } else {
+    currentStreakWeeks = 0;
+    streakState = 'BUILDING';
+    shortHint = neededSessions === maxPossibleAdditionalSessions
+      ? `Tập đủ ${neededSessions} ngày còn lại để mở Chuỗi Tuần 1`
+      : `Tuần này ${thisWeek.validSessions}/3 buổi · Còn ${neededSessions} buổi mở Chuỗi Tuần 1`;
+  }
+
+  if (currentStreakWeeks > bestStreakWeeks) {
+    bestStreakWeeks = currentStreakWeeks;
+  }
+
+  const remExToday = Math.max(0, STREAK_MIN_EX_PER_SESSION - todayExCount);
+  const liveSubText = (todayExCount > 0 && !todayIsValid)
+    ? `Hôm nay ${todayExCount}/3 bài — thêm ${remExToday} bài nữa để tính 1 buổi!`
+    : shortHint;
+
+  return {
+    currentStreakWeeks,
+    bestStreakWeeks,
+    totalValidSessions,
+    streakState,
+    shortHint,
+    liveSubText,
+    todayExCount,
+    todayIsValid,
+    neededSessions,
+    canStillQualifyThisWeek,
+    thisWeek,
+    recent8Weeks: allWeeks.slice(-8)
+  };
+}
+
+function buildTodayStreakBannerMarkup(streak) {
+  const cardCls = streak.streakState === 'LOCKED'
+    ? 'locked'
+    : (streak.streakState === 'URGENT' || (streak.todayExCount > 0 && !streak.todayIsValid))
+      ? 'urgent'
+      : '';
+
+  const titleText = streak.currentStreakWeeks > 0
+    ? `Chuỗi ${streak.currentStreakWeeks} tuần liên tục`
+    : 'Chuỗi Streak: 0 tuần';
+
+  const subColor = streak.streakState === 'LOCKED'
+    ? 'var(--green)'
+    : (streak.streakState === 'URGENT' || (streak.todayExCount > 0 && !streak.todayIsValid))
+      ? 'var(--orange)'
+      : 'var(--label-secondary)';
+
+  const slotsHtml = [0, 1, 2].map(idx => {
+    if (idx < streak.thisWeek.validSessions) {
+      return `<span class="streak-slot done tabular">✓</span>`;
+    }
+    if (idx === streak.thisWeek.validSessions && streak.todayExCount > 0 && !streak.todayIsValid) {
+      return `<span class="streak-slot partial tabular">${streak.todayExCount}/3</span>`;
+    }
+    return `<span class="streak-slot empty tabular">B${idx + 1}</span>`;
+  }).join('');
+
+  const bonusPill = streak.thisWeek.validSessions > 3
+    ? `<span class="streak-slot done tabular">+${streak.thisWeek.validSessions - 3}</span>`
+    : '';
+
+  return `
+    <div class="af-streak-card ${cardCls}" onclick="openStreakSheet()">
+      <div class="af-streak-left">
+        <div class="af-streak-title-row">
+          <span class="af-streak-flame">${streak.currentStreakWeeks > 0 || streak.streakState === 'LOCKED' ? '🔥' : '⚡'}</span>
+          <span class="af-streak-title tabular">${titleText}</span>
+          ${streak.bestStreakWeeks > 0 ? `<span style="font-size:10.5px;font-weight:600;color:var(--label-secondary);" class="tabular">· Kỷ lục ${streak.bestStreakWeeks}t</span>` : ''}
+        </div>
+        <div class="af-streak-sub tabular" style="color:${subColor};">${streak.liveSubText}</div>
+      </div>
+      <div class="af-streak-slots">
+        ${slotsHtml}
+        ${bonusPill}
+      </div>
+    </div>
+  `;
+}
+
+function buildProgressStreakCardMarkup(streak) {
+  const daysHtml = streak.thisWeek.days.map(d => {
+    const dotCls = d.isValid ? 'done' : d.isPartial ? 'partial' : 'empty';
+    const dotTxt = d.isValid ? '✓' : d.isPartial ? `${d.exCount}/3` : '·';
+    const subTxt = d.exCount > 0 ? `${d.exCount} bài` : d.dd;
+    return `
+      <div class="streak-day-col ${d.isToday ? 'today' : ''}">
+        <span class="streak-day-lbl">${d.label}</span>
+        <div class="streak-day-dot ${dotCls} tabular">${dotTxt}</div>
+        <span class="streak-day-sub tabular">${subTxt}</span>
+      </div>
+    `;
+  }).join('');
+
+  const weeks8Html = streak.recent8Weeks.map((w, idx) => {
+    const lbl = w.isCurrent ? 'Tuần này' : `T-${streak.recent8Weeks.length - 1 - idx}`;
+    const valColor = w.qualified ? 'var(--green)' : w.isCurrent ? 'var(--orange)' : 'var(--label-secondary)';
+    return `
+      <div class="streak-8w-cell ${w.qualified ? 'qualified' : ''} ${w.isCurrent ? 'current' : ''} tabular">
+        <div style="font-size:9.5px;color:var(--label-secondary);">${lbl}</div>
+        <div style="font-size:11.5px;font-weight:700;color:${valColor};margin-top:2px;">${w.qualified ? '✓ ' : ''}${w.validSessions}/3</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="apple-card" onclick="openStreakSheet()" style="cursor:pointer;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div class="ex-slot-tag" style="margin-bottom:0;color:${streak.streakState === 'LOCKED' ? 'var(--green)' : 'var(--orange)'};">
+          STREAK LIÊN TỤC · TỐI THIỂU 3 BUỔI × 3 BÀI/TUẦN
+        </div>
+        <span style="font-size:11.5px;font-weight:600;color:var(--label-secondary);" class="tabular">Kỷ lục: ${streak.bestStreakWeeks} tuần</span>
+      </div>
+
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:6px;">
+        <div style="font-size:26px;font-weight:700;letter-spacing:-0.025em;" class="tabular">
+          🔥 ${streak.currentStreakWeeks} <span style="font-size:15px;font-weight:500;color:var(--label-secondary);">tuần liên tục</span>
+        </div>
+        <div style="font-size:13.5px;font-weight:700;color:${streak.thisWeek.qualified ? 'var(--green)' : 'var(--orange)'};" class="tabular">
+          Tuần này: ${streak.thisWeek.validSessions}/3 buổi
+        </div>
+      </div>
+
+      <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;" class="tabular">${streak.liveSubText}</div>
+
+      <div class="streak-week-grid">
+        ${daysHtml}
+      </div>
+
+      <div style="font-size:11px;font-weight:600;color:var(--label-secondary);margin-top:12px;display:flex;justify-content:space-between;" class="tabular">
+        <span>Chuỗi 8 tuần gần nhất (${streak.thisWeek.rangeShort})</span>
+        <span>Tổng: ${streak.totalValidSessions} buổi hợp lệ</span>
+      </div>
+      <div class="streak-8w-grid">
+        ${weeks8Html}
+      </div>
+    </div>
+  `;
+}
+
 function getExerciseStats(ex, options = {}) {
   const unitLbl = ex.unit || 'lần';
   const wUnit = ex.wUnit || 'kg';
@@ -2079,6 +2371,72 @@ function openActivitySheet() {
   });
 }
 
+function openStreakSheet() {
+  hapticTap(12);
+  const streak = calculateStreakStats();
+  const body = document.getElementById('sheetBody');
+  const scrim = document.getElementById('sheetScrim');
+  const panel = document.getElementById('sheetPanel');
+  if (!body || !scrim || !panel) return;
+
+  const daysDetailHtml = streak.thisWeek.days.map(d => {
+    const statusTxt = d.isValid
+      ? `<span style="color:var(--green);font-weight:700;">✓ Đạt buổi (${d.exCount} bài)</span>`
+      : d.isPartial
+        ? `<span style="color:var(--orange);font-weight:600;">Đang dở (${d.exCount}/3 bài)</span>`
+        : d.isFuture
+          ? `<span style="color:var(--label-tertiary);">Sắp tới</span>`
+          : `<span style="color:var(--label-secondary);">Nghỉ</span>`;
+    return `
+      <div class="ios-row tabular" style="padding:10px 14px;">
+        <span style="font-size:14px;font-weight:${d.isToday ? '700' : '500'};color:${d.isToday ? 'var(--green)' : 'var(--label-primary)'};">
+          ${d.label} (${d.ddmm})${d.isToday ? ' · Hôm nay' : ''}
+        </span>
+        <span style="font-size:13.5px;">${statusTxt}</span>
+      </div>
+    `;
+  }).join('');
+
+  body.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div class="ex-slot-tag" style="color:var(--orange);">KỶ LUẬT THÉP · 3 BUỔI/TUẦN × ≥3 BÀI/BUỔI</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;">
+        <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;" class="tabular">🔥 Chuỗi ${streak.currentStreakWeeks} tuần</div>
+        <div style="font-size:13px;font-weight:600;color:var(--green);" class="tabular">Kỷ lục: ${streak.bestStreakWeeks} tuần</div>
+      </div>
+      <div style="font-size:12.5px;color:var(--label-secondary);margin-top:3px;" class="tabular">${streak.liveSubText}</div>
+    </div>
+
+    <div class="ios-list" style="background:var(--bg-tertiary);margin-bottom:12px;">
+      ${daysDetailHtml}
+    </div>
+
+    <div style="background:var(--bg-tertiary);border-radius:13px;padding:12px 14px;font-size:12.5px;line-height:1.45;color:var(--label-secondary);margin-bottom:12px;">
+      <strong style="color:var(--label-primary);">Quy tắc khóa Streak:</strong><br>
+      • <strong>1 buổi hợp lệ:</strong> Hoàn thành tối thiểu <strong>3 bài tập khác nhau</strong> trong cùng 1 ngày.<br>
+      • <strong>1 tuần giữ Streak:</strong> Tối thiểu <strong>3 buổi hợp lệ / tuần</strong> (tính từ Thứ 2 đến hết Chủ Nhật).
+    </div>
+
+    <button class="btn-primary-apple" onclick="closeDetailSheet()">Đã rõ · Vào tập ngay</button>
+  `;
+
+  scrim.classList.add('open');
+  sheetOpen = true;
+  const h = panel.offsetHeight || 420;
+  currentSheetY = h;
+
+  animateSpring('detailSheet', {
+    from: currentSheetY,
+    to: 0,
+    damping: 0.86,
+    response: 0.34,
+    onUpdate: (y) => {
+      currentSheetY = y;
+      panel.style.transform = `translateY(${Math.max(-20, y)}px)`;
+    }
+  });
+}
+
 function closeDetailSheet(releaseVelocity = 0) {
   const scrim = document.getElementById('sheetScrim');
   const panel = document.getElementById('sheetPanel');
@@ -2224,8 +2582,10 @@ async function syncFromGoogleSheet(silent = false) {
         const w = parseFloat(String(r[4]).replace(/,/g, '')) || 0;
         const reps = parseInt(String(r[5]).replace(/,/g, ''), 10) || 0;
         if (w <= 0) continue;
+        let rawLogDate = r[0] || '';
+        if (rawLogDate === '2026-01-10' && String(r[1]) === '2') rawLogDate = '01/10/2026';
         sheetLogs.push({
-          date: normalizeDateVN(r[0] || ''),
+          date: normalizeDateVN(rawLogDate),
           week: r[1] || '',
           workout: r[2] || '',
           exercise: r[3] || '',
@@ -2587,13 +2947,22 @@ function toggleSetDone(exId, setIdx) {
 
   ensureLiveExTimerLoop();
 
-  // Auto-save live to state.logs immediately upon ticking ✓
+  // Auto-save live to state.logs immediately upon ticking ✓ & detect Streak milestone
+  const prevStreak = calculateStreakStats();
   syncTodaySessionToLogs();
+  const nextStreak = calculateStreakStats();
   saveState();
   render();
   scheduleCloudSync();
 
   if (targetSet.done) {
+    if (!prevStreak.todayIsValid && nextStreak.todayIsValid) {
+      if (nextStreak.thisWeek.validSessions === STREAK_MIN_SESSIONS_PER_WEEK) {
+        showToast(`🔥 KHÓA STREAK TUẦN (${nextStreak.currentStreakWeeks} tuần liên tục · 3/3 buổi)!`);
+      } else {
+        showToast(`✓ Đủ 3 bài — Đã tính Buổi ${nextStreak.thisWeek.validSessions}/3 tuần này!`);
+      }
+    }
     const latestBody = state.body[state.body.length - 1] || { weight: 74.0 };
     const bodyW = Number(latestBody.weight) || 74.0;
     const exCal = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW, s);
@@ -2777,6 +3146,7 @@ function renderTodayTab() {
   const bodyW = Number(latestBody.weight) || 74.0;
   const lastSession = getLastSessionInfo();
   const energy = calculateEnergyStats();
+  const streak = calculateStreakStats();
   let doneSets = 0;
   let totalSets = 0;
   let todayVolume = 0;
@@ -2945,6 +3315,9 @@ function renderTodayTab() {
       <button class="seg-btn ${state.workoutMode === 'WORKOUT_B' ? 'active' : ''}" onclick="setWorkoutMode('WORKOUT_B')">Buổi B</button>
     </div>
 
+    <!-- Weekly Discipline Streak Banner (Min 3 Sessions/Week × Min 3 Exercises/Session) -->
+    ${buildTodayStreakBannerMarkup(streak)}
+
     <!-- Unified Apple Fitness Activity Card (Rings + Workout/Daily Calo + Steps in ONE card) -->
     <div class="af-summary-card tabular">
       <div class="af-top-row" onclick="openActivitySheet()">
@@ -3046,7 +3419,12 @@ function renderProgressTab() {
   const pct = Math.min(100, Math.max(5, Math.round((lost / (startWeight - targetWeight)) * 100)));
   const bmi = (currentW / (1.63 * 1.63)).toFixed(1);
   const totalVol = state.logs.reduce((a, b) => a + (Number(b.volume) || 0), 0);
-  const sessionsCount = new Set(state.logs.map(l => l.date)).size;
+  const sessionsCount = new Set(state.logs.map(l => {
+    let d = normalizeDateVN(l.date);
+    if (d === '10/01/2026' && String(l.week) === '2') d = '01/10/2026';
+    return d;
+  })).size;
+  const streak = calculateStreakStats();
 
   const exRows = EXERCISES.map(ex => {
     const st = getExerciseStats(ex);
@@ -3074,12 +3452,14 @@ function renderProgressTab() {
   // Group logs by date to show Session-by-Session history
   const sessionMap = new Map();
   state.logs.forEach(l => {
-    const dKey = normalizeDateVN(l.date);
+    let dKey = normalizeDateVN(l.date);
+    if (dKey === '10/01/2026' && String(l.week) === '2') dKey = '01/10/2026';
     if (!sessionMap.has(dKey)) {
-      sessionMap.set(dKey, { date: dKey, countA: 0, countB: 0, e9: false, e8: false, e7: false, full: false, exCount: 0, vol: 0, lastTag: l.workout });
+      sessionMap.set(dKey, { date: dKey, countA: 0, countB: 0, e9: false, e8: false, e7: false, full: false, exSet: new Set(), vol: 0, lastTag: l.workout });
     }
     const item = sessionMap.get(dKey);
-    item.exCount++;
+    const exName = String(l.exercise || '').trim();
+    if (exName && (Number(l.weight) > 0 || Number(l.reps) > 0)) item.exSet.add(exName);
     item.vol += Number(l.volume) || 0;
     item.lastTag = l.workout;
     const wStr = String(l.workout || '').toUpperCase();
@@ -3092,6 +3472,7 @@ function renderProgressTab() {
   });
 
   const sessionRows = Array.from(sessionMap.values()).reverse().map(s => {
+    const exCount = s.exSet.size;
     let label = 'Buổi A';
     let color = 'var(--green)';
     if (s.e9) {
@@ -3103,18 +3484,21 @@ function renderProgressTab() {
     } else if (s.e7) {
       label = '7 Bài Chuẩn';
       color = 'var(--blue)';
-    } else if (s.full && s.exCount >= 7) {
+    } else if (s.full && exCount >= 7) {
       label = 'Gộp A+B (2 Tầng)';
       color = 'var(--blue)';
     } else if (String(s.lastTag || '').toUpperCase().includes('B') || s.countB > s.countA) {
       label = 'Buổi B';
       color = 'var(--orange)';
     }
+    const streakBadge = exCount >= STREAK_MIN_EX_PER_SESSION
+      ? `<span style="color:var(--green);font-weight:600;">✓ Tính Streak</span> · ${exCount} bài`
+      : `<span style="color:var(--orange);font-weight:600;">Chưa đủ 3 bài</span> · ${exCount}/3 bài`;
     return `
       <div class="ios-row">
         <div>
           <div style="font-size:15px;font-weight:600;" class="tabular">${s.date}</div>
-          <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;">Đã hoàn thành ${s.exCount} bài tập</div>
+          <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;" class="tabular">${streakBadge}</div>
         </div>
         <div style="text-align:right;" class="tabular">
           <div style="font-size:14px;font-weight:700;color:${color};">${label}</div>
@@ -3164,6 +3548,8 @@ function renderProgressTab() {
         <span>Đã tập: ${sessionsCount} buổi · ${totalVol.toLocaleString('vi-VN')} kg tạ</span>
       </div>
     </div>
+
+    ${buildProgressStreakCardMarkup(streak)}
 
     <div class="section-header">
       <span class="section-title">Nhật ký các buổi tập</span>
@@ -3216,6 +3602,7 @@ function renderCardioBodyTab() {
   const bt = { ...DEFAULT_BODY_TARGETS_3M, ...(state.bodyTargets3M || {}) };
   const et = { ...DEFAULT_EX_TARGETS_3M, ...(state.exTargets3M || {}) };
   const energy = calculateEnergyStats();
+  const streak = calculateStreakStats();
   const curProfile = getCurrentBodyProfile();
 
   const latestBody = state.body[state.body.length - 1] || { weight: 74.0, waist: '', forearm: '' };
@@ -3501,6 +3888,13 @@ function renderCardioBodyTab() {
       <span class="section-meta">Đạt ${avgStrengthPct}% sức mạnh</span>
     </div>
     <div class="ios-list tabular">
+      <div class="ios-row" onclick="openStreakSheet()" style="cursor:pointer;">
+        <div>
+          <div style="font-size:15px;font-weight:500;">Chuỗi Streak kỷ luật tuần</div>
+          <div style="font-size:12px;color:var(--label-secondary);">Tối thiểu 3 buổi/tuần · ≥3 bài/buổi</div>
+        </div>
+        <span style="font-size:15px;font-weight:600;color:${streak.thisWeek.qualified ? 'var(--green)' : 'var(--orange)'};">🔥 ${streak.currentStreakWeeks} tuần (${streak.thisWeek.validSessions}/3)</span>
+      </div>
       <div class="ios-row" onclick="openActivitySheet()" style="cursor:pointer;">
         <div>
           <div style="font-size:15px;font-weight:500;">Ngân sách Calo giảm mỡ</div>
@@ -3690,10 +4084,10 @@ async function saveWebhookUrl() {
 
 async function copyAppsScriptCode() {
   try {
-    const res = await fetch('./google-apps-script.gs?v=28', { cache: 'no-store' });
+    const res = await fetch('./google-apps-script.gs?v=29', { cache: 'no-store' });
     const code = await res.text();
     await navigator.clipboard.writeText(code);
-    showToast('Đã sao chép mã Google Apps Script v28');
+    showToast('Đã sao chép mã Google Apps Script v29');
   } catch (e) {
     showToast('Mở file google-apps-script.gs để chép mã');
   }
@@ -3786,7 +4180,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=28', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=29', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })

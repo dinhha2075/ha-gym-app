@@ -1261,6 +1261,182 @@ select option {
   text-transform: uppercase;
 }
 
+/* ============================================================================
+   WEEKLY STREAK TRACKER (MIN 3 SESSIONS/WEEK × MIN 3 EXERCISES/SESSION)
+   ============================================================================ */
+.af-streak-card {
+  background: var(--bg-secondary);
+  border-radius: 15px;
+  padding: 11px 14px;
+  margin-bottom: 12px;
+  border: 0.5px solid var(--glass-edge);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.af-streak-card.locked {
+  border-color: rgba(48, 209, 88, 0.42);
+  background: linear-gradient(135deg, rgba(48, 209, 88, 0.11) 0%, var(--bg-secondary) 68%);
+}
+
+.af-streak-card.urgent {
+  border-color: rgba(255, 159, 10, 0.48);
+  background: linear-gradient(135deg, rgba(255, 159, 10, 0.12) 0%, var(--bg-secondary) 68%);
+}
+
+.af-streak-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.af-streak-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.af-streak-flame {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.af-streak-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--label-primary);
+}
+
+.af-streak-sub {
+  font-size: 11.5px;
+  color: var(--label-secondary);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.af-streak-slots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.streak-slot {
+  min-width: 28px;
+  height: 25px;
+  padding: 0 5px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.streak-slot.done {
+  background: var(--green);
+  color: #000000;
+}
+
+.streak-slot.partial {
+  background: rgba(255, 159, 10, 0.16);
+  border: 1px dashed var(--orange);
+  color: var(--orange);
+}
+
+.streak-slot.empty {
+  background: var(--bg-tertiary);
+  color: var(--label-tertiary);
+}
+
+.streak-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.streak-day-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 2px;
+  border-radius: 10px;
+  background: var(--bg-primary);
+  border: 0.5px solid transparent;
+}
+
+.streak-day-col.today {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.streak-day-lbl {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--label-secondary);
+}
+
+.streak-day-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 10.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.streak-day-dot.done {
+  background: var(--green);
+  color: #000000;
+}
+
+.streak-day-dot.partial {
+  background: rgba(255, 159, 10, 0.18);
+  border: 1px dashed var(--orange);
+  color: var(--orange);
+}
+
+.streak-day-dot.empty {
+  background: var(--bg-tertiary);
+  color: var(--label-tertiary);
+}
+
+.streak-day-sub {
+  font-size: 9.8px;
+  color: var(--label-tertiary);
+}
+
+.streak-8w-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.streak-8w-cell {
+  border-radius: 9px;
+  padding: 6px 2px;
+  text-align: center;
+  background: var(--bg-primary);
+  border: 0.5px solid transparent;
+}
+
+.streak-8w-cell.qualified {
+  background: rgba(48, 209, 88, 0.15);
+  border-color: rgba(48, 209, 88, 0.40);
+}
+
+.streak-8w-cell.current:not(.qualified) {
+  border-color: rgba(255, 159, 10, 0.42);
+}
+
 /* Accessibility: Reduced Motion & Reduced Transparency */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

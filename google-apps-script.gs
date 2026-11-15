@@ -1,5 +1,5 @@
 /**
- * MÃ ĐỒNG BỘ 2 CHIỀU CHO APP HÀ GYM (v28 — TỰ ĐỘNG GHI & CHỐNG TRÙNG LẶP DÒNG)
+ * MÃ ĐỒNG BỘ 2 CHIỀU CHO APP HÀ GYM (v29 — TỰ ĐỘNG GHI & CHỐNG TRÙNG LẶP DÒNG)
  * Hướng dẫn gắn vào Sheet (Chỉ làm 1 lần, dùng vĩnh viễn):
  * 1. Mở file Google Sheet: https://docs.google.com/spreadsheets/d/1pPayEETE_yoW9lzxYy3Qdd2GV5yEqp1uQZq285eK-wQ/edit
  * 2. Trên thanh menu bấm: Tiện ích mở rộng (Extensions) -> Apps Script
@@ -31,7 +31,7 @@ function normDate(raw) {
 function doGet() {
   return jsonResponse({
     ok: true,
-    service: 'Ha Gym Cloud Sync v28',
+    service: 'Ha Gym Cloud Sync v29',
     sheetId: SPREADSHEET_ID
   });
 }
