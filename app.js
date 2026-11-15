@@ -523,6 +523,55 @@ function getTodayDateKey() {
   return formatDateVN(new Date());
 }
 
+function formatClockMMSS(totalSec) {
+  const sec = Math.max(0, Math.round(Number(totalSec) || 0));
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function formatDurationCompact(totalSec) {
+  const sec = Math.max(0, Math.round(Number(totalSec) || 0));
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return s > 0 ? `${m}p${String(s).padStart(2, '0')}s` : `${m}p`;
+}
+
+function parseNoteSetReps(noteStr) {
+  const raw = String(noteStr || '');
+  if (!raw.includes('Hiệp:')) return [];
+  const head = raw.split('·')[0].replace('Hiệp:', '').trim();
+  return head.split('/').map(n => parseInt(n, 10)).filter(n => !isNaN(n) && n > 0);
+}
+
+function parseNoteDurationSec(noteStr) {
+  const raw = String(noteStr || '');
+  const mMinSec = raw.match(/(?:·|\s)(\d+)p(?:(\d+)s)?(?:\s|·|$)/);
+  if (mMinSec) {
+    return parseInt(mMinSec[1], 10) * 60 + (mMinSec[2] ? parseInt(mMinSec[2], 10) : 0);
+  }
+  const mOnlySec = raw.match(/·\s*(\d+)s(?:\s|·|$)/);
+  if (mOnlySec) {
+    return parseInt(mOnlySec[1], 10);
+  }
+  return 0;
+}
+
+function getExerciseElapsedSec(s) {
+  if (!s) return 0;
+  if (s.endedAt && s.startedAt) {
+    return Math.max(1, Math.round((s.endedAt - s.startedAt) / 1000));
+  }
+  if (Number(s.durationSec) > 0 && !s.startedAt) {
+    return Math.round(Number(s.durationSec));
+  }
+  if (s.startedAt && !s.endedAt) {
+    return Math.max(0, Math.round((Date.now() - s.startedAt) / 1000));
+  }
+  return Number(s.durationSec) > 0 ? Math.round(Number(s.durationSec)) : 0;
+}
+
 let state = {
   activeTab: 'today',
   workoutMode: 'ESSENTIAL_7', // 'ESSENTIAL_7' | 'WORKOUT_A' | 'WORKOUT_B'
@@ -659,6 +708,7 @@ function loadState() {
 
   initTodayDefaults();
   getTodayActivity();
+  ensureLiveExTimerLoop();
   saveState();
 }
 
@@ -703,7 +753,7 @@ function getExerciseStats(ex, options = {}) {
   let lastAvgReps = ex.repMin;
   const noteStr = String(last.note || '');
   if (noteStr.includes('Hiệp:')) {
-    const parts = noteStr.replace('Hiệp:', '').trim().split('/').map(n => parseInt(n, 10)).filter(n => !isNaN(n) && n > 0);
+    const parts = parseNoteSetReps(noteStr);
     if (parts.length > 0) {
       lastAvgReps = Math.round(parts.reduce((a, b) => a + b, 0) / parts.length);
     }
@@ -773,7 +823,11 @@ function initTodayDefaults() {
       state.todaySession[ex.id] = {
         weight: stats.recWeight,
         sets: Array.from({ length: 3 }, () => ({ reps: defaultRep, done: false })),
-        rir: ex.rir
+        rir: ex.rir,
+        startedAt: null,
+        endedAt: null,
+        durationSec: 0,
+        autoStarted: false
       };
     } else {
       const s = state.todaySession[ex.id];
@@ -809,11 +863,9 @@ function hydrateTodayFromLogs(targetDate) {
     const anyDone = cur && Array.isArray(cur.sets) && cur.sets.some(st => st.done);
     if (anyDone) return;
 
-    let repParts = [];
     const noteStr = String(l.note || '');
-    if (noteStr.includes('Hiệp:')) {
-      repParts = noteStr.replace('Hiệp:', '').trim().split('/').map(n => parseInt(n, 10)).filter(n => !isNaN(n) && n > 0);
-    }
+    let repParts = parseNoteSetReps(noteStr);
+    const hydratedDurSec = Number(l.durationSec) || parseNoteDurationSec(noteStr);
     if (repParts.length === 0) {
       const total = Number(l.reps) || ex.repMax;
       if (total <= ex.repMax + 2) {
@@ -837,7 +889,11 @@ function hydrateTodayFromLogs(targetDate) {
     state.todaySession[ex.id] = {
       weight: Number(l.weight) || ex.inc,
       sets: setsArr,
-      rir: l.rir || ex.rir
+      rir: l.rir || ex.rir,
+      startedAt: null,
+      endedAt: null,
+      durationSec: hydratedDurSec,
+      autoStarted: false
     };
   });
 }
@@ -853,6 +909,8 @@ function syncTodaySessionToLogs(dateOverride = null) {
 
   const baseLogCount = state.logs.filter(l => normalizeDateVN(l.date) !== targetDate).length;
   const weekNum = Math.max(6, Math.ceil((baseLogCount + 1) / 6));
+  const latestBody = state.body[state.body.length - 1] || { weight: 74.0 };
+  const bodyW = Number(latestBody.weight) || 74.0;
 
   EXERCISES.forEach(ex => {
     const s = state.todaySession[ex.id];
@@ -869,6 +927,12 @@ function syncTodaySessionToLogs(dateOverride = null) {
       const vol = w * totalReps;
       const allHitMax = activeSets.length >= numSets && activeSets.every(st => Number(st.reps) >= ex.repMax);
       const nextW = allHitMax ? w + ex.inc : w;
+      const durSec = getExerciseElapsedSec(s);
+      const exCal = getExerciseCalorieInfo(ex, w, s.sets, numSets, bodyW, s);
+      const setTag = `Hiệp: ${activeSets.map(x => x.reps).join('/')}`;
+      const noteFull = durSec > 0
+        ? `${setTag} · ${formatDurationCompact(durSec)} · ${exCal.burnedKcal} kcal`
+        : setTag;
 
       const rowObj = {
         date: targetDate,
@@ -880,7 +944,9 @@ function syncTodaySessionToLogs(dateOverride = null) {
         volume: vol,
         rir: s.rir || ex.rir,
         nextWeight: nextW,
-        note: `Hiệp: ${activeSets.map(x => x.reps).join('/')}`,
+        note: noteFull,
+        durationSec: durSec,
+        kcal: exCal.burnedKcal,
         isLocal: true,
         autoSynced: true
       };
@@ -997,32 +1063,58 @@ function getTodayActivity() {
   return state.dailyActivity[key];
 }
 
-// Estimate & calculate burned kcal for a single exercise based on MET + mechanical volume
-function getExerciseCalorieInfo(ex, weight, setsArr, numSets, bodyW) {
+// Estimate & calculate burned kcal for a single exercise based on REAL measured duration (MET) + mechanical volume
+function getExerciseCalorieInfo(ex, weight, setsArr, numSets, bodyW, sessionObj = null) {
   const compoundIds = ['EX01', 'EX02', 'EX03', 'EX04', 'EX07', 'EX08', 'EX09'];
   const isCompound = compoundIds.includes(ex.id);
-  const met = isCompound ? 5.6 : 4.3;
-  const minPerSet = isCompound ? 2.0 : 1.55;
-  const volFactor = isCompound ? 0.005 : 0.004;
-  const basePerSet = met * 3.5 * (bodyW / 200) * minPerSet;
+  const met = ex.id === 'EX01' || ex.id === 'EX14' ? 6.0 : isCompound ? 5.3 : 4.2;
+  const estMinPerSet = ex.id === 'EX01' ? 2.2 : isCompound ? 1.9 : 1.5;
+  const volFactor = isCompound ? 0.0048 : 0.004;
 
   const w = Number(weight) || 0;
-  let estKcal = 0;
-  let burnedKcal = 0;
+  // Bilateral dumbbell lifts (kg/tay) move TWO dumbbells simultaneously
+  const mechLoad = ex.wUnit === 'kg/tay' ? w * 2 : w;
+
+  let estMechKcal = 0;
+  let actualMechKcal = 0;
+  let doneCount = 0;
 
   for (let i = 0; i < numSets; i++) {
     const st = (setsArr && setsArr[i]) ? setsArr[i] : { reps: ex.repMax, done: false };
-    const estReps = Number(st.reps) || ex.repMax;
-    const setKcal = basePerSet + (w * estReps * volFactor);
-    estKcal += setKcal;
+    const rawReps = Number(st.reps) || ex.repMax;
+    const workUnits = ex.unit === 'giây' ? rawReps * 0.35 : rawReps;
+    const setMech = mechLoad * workUnits * volFactor;
+    estMechKcal += setMech;
     if (st.done) {
-      burnedKcal += setKcal;
+      doneCount++;
+      actualMechKcal += setMech;
     }
   }
 
+  const estMetKcal = met * 3.5 * (bodyW / 200) * (estMinPerSet * numSets);
+  const estKcal = Math.max(6, Math.round(estMetKcal + estMechKcal));
+
+  const s = sessionObj || (state.todaySession && state.todaySession[ex.id]) || null;
+  const rawElapsedSec = getExerciseElapsedSec(s);
+  const isRunning = Boolean(s && s.startedAt && !s.endedAt && doneCount < numSets);
+
+  let burnedKcal = 0;
+  if (doneCount > 0 || (isRunning && rawElapsedSec >= 5)) {
+    const effectiveSec = rawElapsedSec > 0
+      ? rawElapsedSec
+      : Math.round(doneCount * estMinPerSet * 60);
+    // Physiological anti-inflation cap: max 210s (3.5 min) active MET credit per performed/active set
+    const activeSlots = Math.min(numSets, doneCount + (isRunning ? 1 : 0));
+    const cappedActiveSec = Math.min(effectiveSec, Math.max(45, activeSlots * 210));
+    const actualMetKcal = met * 3.5 * (bodyW / 200) * (cappedActiveSec / 60);
+    burnedKcal = Math.max(doneCount > 0 ? 3 : 0, Math.round(actualMetKcal + actualMechKcal));
+  }
+
   return {
-    estKcal: Math.round(estKcal),
-    burnedKcal: Math.round(burnedKcal)
+    estKcal,
+    burnedKcal,
+    elapsedSec: rawElapsedSec,
+    isRunning
   };
 }
 
@@ -1039,17 +1131,19 @@ function calculateEnergyStats() {
   const inclineKcal = Math.round(6.8 * 3.5 * (bodyW / 200) * 10);   // ~88 kcal (10p incline 10% @ 5.0km/h)
   const bagKcal = Math.round(7.8 * 3.5 * (bodyW / 200) * 2);        // ~20 kcal (2p heavy bag)
 
-  // 2. Strength sets estimated & burned kcal
+  // 2. Strength sets estimated & burned kcal + total measured exercise duration
   let setsEstKcal = 0;
   let setsBurnedKcal = 0;
+  let totalExSec = 0;
 
   exList.forEach(ex => {
     const numSets = getTargetSetsCount(ex);
     const stats = getExerciseStats(ex, { excludeToday: true });
     const s = state.todaySession[ex.id] || { weight: stats.recWeight, sets: [] };
-    const info = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW);
+    const info = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW, s);
     setsEstKcal += info.estKcal;
     setsBurnedKcal += info.burnedKcal;
+    totalExSec += info.elapsedSec;
   });
 
   // Also check if user already saved a workout earlier today in state.logs
@@ -1057,16 +1151,26 @@ function calculateEnergyStats() {
   let savedLogKcal = 0;
   if (savedTodayLogs.length > 0 && setsBurnedKcal === 0) {
     savedTodayLogs.forEach(l => {
-      const ex = EXERCISES.find(e => e.name === l.exercise);
-      const numSets = ex ? getTargetSetsCount(ex) : 3;
-      const compoundIds = ['EX01', 'EX02', 'EX03', 'EX04', 'EX07', 'EX08', 'EX09'];
-      const isCompound = ex ? compoundIds.includes(ex.id) : true;
-      const met = isCompound ? 5.6 : 4.3;
-      const minPerSet = isCompound ? 2.0 : 1.55;
-      const volFactor = isCompound ? 0.005 : 0.004;
-      savedLogKcal += Math.round((met * 3.5 * (bodyW / 200) * minPerSet * numSets) + ((Number(l.volume) || 0) * volFactor));
+      if (Number(l.kcal) > 0) {
+        savedLogKcal += Number(l.kcal);
+      } else {
+        const ex = EXERCISES.find(e => e.name === l.exercise);
+        const numSets = ex ? getTargetSetsCount(ex) : 3;
+        const compoundIds = ['EX01', 'EX02', 'EX03', 'EX04', 'EX07', 'EX08', 'EX09'];
+        const isCompound = ex ? compoundIds.includes(ex.id) : true;
+        const met = isCompound ? 5.3 : 4.2;
+        const minPerSet = isCompound ? 1.9 : 1.5;
+        const volFactor = isCompound ? 0.0048 : 0.004;
+        savedLogKcal += Math.round((met * 3.5 * (bodyW / 200) * minPerSet * numSets) + ((Number(l.volume) || 0) * volFactor));
+      }
+      if (totalExSec === 0) {
+        totalExSec += Number(l.durationSec) || parseNoteDurationSec(l.note);
+      }
     });
   }
+
+  const totalExMinutes = Math.round(totalExSec / 60);
+  const totalExTimeLabel = totalExSec > 0 ? formatDurationCompact(totalExSec) : '';
 
   const effectiveSetsBurned = Math.max(setsBurnedKcal, savedLogKcal);
   const hasFarmerCard = exList.some(e => e.id === 'EX14');
@@ -1114,6 +1218,9 @@ function calculateEnergyStats() {
     bagKcal,
     setsEstKcal,
     setsBurnedKcal: effectiveSetsBurned,
+    totalExSec,
+    totalExMinutes,
+    totalExTimeLabel,
     addonsBurnedKcal,
     workoutEstKcal,
     workoutBurnedKcal,
@@ -1573,6 +1680,10 @@ function openActivitySheet() {
 
     <div class="ios-list" style="background:var(--bg-tertiary);margin-bottom:14px;">
       <div class="ios-row tabular">
+        <span style="color:var(--label-secondary);font-size:14px;">Thời gian các bài tạ đã đo</span>
+        <span style="font-weight:600;font-size:14px;color:var(--green);">${energy.totalExTimeLabel || 'Chưa bấm Start'} · ${energy.setsBurnedKcal} kcal</span>
+      </div>
+      <div class="ios-row tabular">
         <span style="color:var(--label-secondary);font-size:14px;">Calo buổi tập (Tạ + Cardio)</span>
         <span style="font-weight:600;font-size:14px;color:var(--orange);">${energy.workoutBurnedKcal} / ${energy.workoutEstKcal} kcal</span>
       </div>
@@ -1915,11 +2026,140 @@ function updateSetReps(exId, setIdx, val) {
   scheduleCloudSync();
 }
 
+let liveExTimerInterval = null;
+
+function updateLiveExerciseTimers() {
+  const exList = getTodayExercises();
+  const latestBody = state.body[state.body.length - 1] || { weight: 74.0 };
+  const bodyW = Number(latestBody.weight) || 74.0;
+  let anyRunning = false;
+
+  exList.forEach(ex => {
+    const s = state.todaySession && state.todaySession[ex.id];
+    if (!s || !s.startedAt || s.endedAt) return;
+    const numSets = getTargetSetsCount(ex);
+    const doneCount = s.sets.slice(0, numSets).filter(st => st.done).length;
+    if (doneCount >= numSets) return;
+
+    anyRunning = true;
+    if (state.activeTab === 'today') {
+      const elapsed = getExerciseElapsedSec(s);
+      const timerTxtEl = document.getElementById(`exTimerText-${ex.id}`);
+      if (timerTxtEl) {
+        timerTxtEl.textContent = formatClockMMSS(elapsed);
+      }
+      const metaEl = document.getElementById(`exMetaTag-${ex.id}`);
+      if (metaEl) {
+        const exCal = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW, s);
+        const slotLabel = getSlotLabel(ex);
+        metaEl.textContent = `${slotLabel} · TẦNG ${ex.floor} · ${exCal.burnedKcal}/${exCal.estKcal} KCAL`;
+      }
+    }
+  });
+
+  if (anyRunning && state.activeTab === 'today') {
+    const energy = calculateEnergyStats();
+    const wBurnEl = document.getElementById('liveWorkoutBurnedVal');
+    if (wBurnEl) wBurnEl.textContent = String(energy.workoutBurnedKcal);
+    const dBurnEl = document.getElementById('liveDailyBurnedVal');
+    if (dBurnEl) dBurnEl.textContent = energy.dailyTotalBurnedTDEE.toLocaleString('vi-VN');
+    const exTimeLbl = document.getElementById('liveExTimeLabel');
+    if (exTimeLbl) {
+      exTimeLbl.textContent = energy.totalExTimeLabel ? `Hiệp tập · ${energy.totalExTimeLabel}` : 'Hiệp tập · Tải';
+    }
+  }
+
+  if (!anyRunning && liveExTimerInterval) {
+    clearInterval(liveExTimerInterval);
+    liveExTimerInterval = null;
+  }
+}
+
+function ensureLiveExTimerLoop() {
+  const hasActive = Object.entries(state.todaySession || {}).some(([id, s]) => {
+    if (!s || !s.startedAt || s.endedAt) return false;
+    const ex = EXERCISES.find(e => e.id === id);
+    const numSets = ex ? getTargetSetsCount(ex) : 3;
+    const doneCount = Array.isArray(s.sets) ? s.sets.slice(0, numSets).filter(st => st.done).length : 0;
+    return doneCount < numSets;
+  });
+  if (hasActive && !liveExTimerInterval) {
+    liveExTimerInterval = setInterval(updateLiveExerciseTimers, 1000);
+  } else if (!hasActive && liveExTimerInterval) {
+    clearInterval(liveExTimerInterval);
+    liveExTimerInterval = null;
+  }
+}
+
+function startExerciseTimer(exId) {
+  hapticTap(12);
+  state.todaySessionDate = getTodayDateKey();
+  const ex = EXERCISES.find(e => e.id === exId);
+  const s = state.todaySession[exId];
+  if (!ex || !s) return;
+
+  const numSets = getTargetSetsCount(ex);
+  const doneCount = s.sets.slice(0, numSets).filter(st => st.done).length;
+  const latestBody = state.body[state.body.length - 1] || { weight: 74.0 };
+  const bodyW = Number(latestBody.weight) || 74.0;
+
+  // Already completed all sets -> display summary toast
+  if (doneCount >= numSets && (s.endedAt || s.durationSec > 0)) {
+    const durSec = getExerciseElapsedSec(s);
+    const exCal = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW, s);
+    showToast(`✓ Đã chốt ${formatDurationCompact(durSec)} · ${exCal.burnedKcal} kcal`);
+    return;
+  }
+
+  // Currently running -> reset if 0 sets done (accidental tap), else guide user
+  if (s.startedAt && !s.endedAt) {
+    if (doneCount === 0) {
+      s.startedAt = null;
+      s.endedAt = null;
+      s.durationSec = 0;
+      s.autoStarted = false;
+      ensureLiveExTimerLoop();
+      saveState();
+      render();
+      showToast('Đã đặt lại đồng hồ bài tập');
+    } else {
+      showToast('Tích ✓ hiệp cuối để tự động chốt giờ & Calo');
+    }
+    return;
+  }
+
+  // Clean up any accidental 0-set timer left open on another card
+  Object.entries(state.todaySession).forEach(([otherId, os]) => {
+    if (otherId !== exId && os && os.startedAt && !os.endedAt) {
+      const oEx = EXERCISES.find(e => e.id === otherId);
+      const oNum = oEx ? getTargetSetsCount(oEx) : 3;
+      const oDone = Array.isArray(os.sets) ? os.sets.slice(0, oNum).filter(st => st.done).length : 0;
+      if (oDone === 0) {
+        os.startedAt = null;
+        os.endedAt = null;
+        os.durationSec = 0;
+        os.autoStarted = false;
+      }
+    }
+  });
+
+  s.startedAt = Date.now();
+  s.endedAt = null;
+  s.durationSec = 0;
+  s.autoStarted = false;
+  ensureLiveExTimerLoop();
+  saveState();
+  render();
+  showToast(`▶ Bắt đầu tính giờ: ${ex.title}`);
+}
+
 function toggleSetDone(exId, setIdx) {
   const ex = EXERCISES.find(e => e.id === exId);
   const s = state.todaySession[exId];
   if (!ex || !s || !s.sets[setIdx]) return;
 
+  const now = Date.now();
+  const numSets = getTargetSetsCount(ex);
   state.todaySessionDate = getTodayDateKey();
   const targetSet = s.sets[setIdx];
   targetSet.done = !targetSet.done;
@@ -1930,6 +2170,41 @@ function toggleSetDone(exId, setIdx) {
     getTodayActivity().farmerDone = true;
   }
 
+  const doneCount = s.sets.slice(0, numSets).filter(st => st.done).length;
+
+  if (targetSet.done) {
+    // Anti-forget fallback: backdate start if user jumped straight into Set 1 without pressing Start
+    if (!s.startedAt && !s.durationSec) {
+      const fallbackSec = ex.unit === 'giây' ? (Number(targetSet.reps) || 45) + 10 : 45;
+      s.startedAt = now - fallbackSec * 1000;
+      s.endedAt = null;
+      s.autoStarted = true;
+    }
+    // Auto-finish stopwatch immediately upon checking the final set of the exercise!
+    if (doneCount >= numSets) {
+      if (s.startedAt) {
+        s.endedAt = now;
+        s.durationSec = Math.max(15, Math.round((s.endedAt - s.startedAt) / 1000));
+      } else if (!s.durationSec) {
+        s.durationSec = numSets * 90;
+      }
+    }
+  } else {
+    // Unchecking sets: reset auto-started timer if 0 sets remain, or reopen timer if final set was unchecked
+    if (doneCount === 0) {
+      s.endedAt = null;
+      s.durationSec = 0;
+      if (s.autoStarted) {
+        s.startedAt = null;
+        s.autoStarted = false;
+      }
+    } else if (doneCount < numSets && s.endedAt) {
+      s.endedAt = null;
+    }
+  }
+
+  ensureLiveExTimerLoop();
+
   // Auto-save live to state.logs immediately upon ticking ✓
   syncTodaySessionToLogs();
   saveState();
@@ -1937,7 +2212,14 @@ function toggleSetDone(exId, setIdx) {
   scheduleCloudSync();
 
   if (targetSet.done) {
-    startRestTimer(ex.restSec, `${ex.title} · Hiệp ${setIdx + 1}`);
+    const latestBody = state.body[state.body.length - 1] || { weight: 74.0 };
+    const bodyW = Number(latestBody.weight) || 74.0;
+    const exCal = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW, s);
+    if (doneCount >= numSets) {
+      startRestTimer(ex.restSec, `✓ Xong ${ex.title} · ${formatDurationCompact(s.durationSec)} · ${exCal.burnedKcal} kcal`);
+    } else {
+      startRestTimer(ex.restSec, `${ex.title} · Hiệp ${setIdx + 1}`);
+    }
   } else {
     hapticTap(8);
   }
@@ -2121,12 +2403,37 @@ function renderTodayTab() {
     const stats = getExerciseStats(ex, { excludeToday: true });
     const numSets = getTargetSetsCount(ex);
     const s = state.todaySession[ex.id] || { weight: stats.recWeight, sets: [] };
-    const exCal = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW);
+    const exCal = getExerciseCalorieInfo(ex, s.weight, s.sets, numSets, bodyW, s);
     const exDoneCount = s.sets.slice(0, numSets).filter(st => st.done).length;
     const isCompleted = exDoneCount >= numSets;
+    const isRunning = Boolean(s.startedAt && !s.endedAt && !isCompleted);
+    const settledSec = getExerciseElapsedSec(s);
     const slotLabel = getSlotLabel(ex);
     const unitLbl = ex.unit || 'lần';
     const wUnit = ex.wUnit || 'kg';
+
+    let timerBtnHtml = '';
+    if (isCompleted && settledSec > 0) {
+      timerBtnHtml = `
+        <button id="exTimerBtn-${ex.id}" class="ex-timer-pill done tabular" onclick="startExerciseTimer('${ex.id}')" aria-label="Thời gian hoàn thành bài tập">
+          ✓ ${formatDurationCompact(settledSec)}
+        </button>
+      `;
+    } else if (isRunning) {
+      timerBtnHtml = `
+        <button id="exTimerBtn-${ex.id}" class="ex-timer-pill running tabular" onclick="startExerciseTimer('${ex.id}')" aria-label="Đang bấm giờ bài tập">
+          <span class="ex-live-dot"></span>
+          <span id="exTimerText-${ex.id}">${formatClockMMSS(settledSec)}</span>
+        </button>
+      `;
+    } else {
+      timerBtnHtml = `
+        <button id="exTimerBtn-${ex.id}" class="ex-timer-pill tabular" onclick="startExerciseTimer('${ex.id}')" aria-label="Bắt đầu tính giờ bài tập">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          Bắt đầu
+        </button>
+      `;
+    }
 
     let setRowsHtml = '';
     for (let i = 0; i < numSets; i++) {
@@ -2147,23 +2454,27 @@ function renderTodayTab() {
       `;
     }
 
+    const metaCalText = isCompleted && settledSec > 0
+      ? `✓ ${exCal.burnedKcal} KCAL`
+      : `${exCal.burnedKcal}/${exCal.estKcal} KCAL`;
+
     listHtml += `
       <div class="apple-card ${isCompleted ? 'completed' : ''}">
         <div class="card-top">
-          <div onclick="openDetailSheet('${ex.id}')" style="cursor:pointer;flex:1;">
-            <div class="ex-slot-tag tabular">${slotLabel} · TẦNG ${ex.floor} · ${exCal.burnedKcal}/${exCal.estKcal} KCAL</div>
+          <div onclick="openDetailSheet('${ex.id}')" style="cursor:pointer;flex:1;min-width:0;">
+            <div id="exMetaTag-${ex.id}" class="ex-slot-tag tabular">${slotLabel} · TẦNG ${ex.floor} · ${metaCalText}</div>
             <div class="ex-name">${ex.title}</div>
             <div class="ex-sub">${ex.vnSub}</div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;">
+          <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+            ${timerBtnHtml}
             ${ex.unit === 'giây' ? `
-              <button class="icon-pill-btn tabular" style="background:var(--green-dim);color:var(--green);height:32px;padding:0 10px;font-size:12px;"
+              <button class="icon-pill-btn tabular" style="background:var(--green-dim);color:var(--green);height:32px;padding:0 9px;font-size:12px;"
                 onclick="startRestTimer(${ex.repMax + 3}, '${ex.title} · Giữ ${ex.repMax}s (+3s cầm tạ)')" aria-label="Bấm giờ giữ ${ex.repMax} giây">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5"/><path d="M10 2h4"/></svg>
                 ${ex.repMax}s
               </button>
             ` : ''}
-            <button class="icon-circle-btn" onclick="openDetailSheet('${ex.id}')" aria-label="Chi tiết kỹ thuật & video">
+            <button class="icon-circle-btn" style="width:32px;height:32px;" onclick="openDetailSheet('${ex.id}')" aria-label="Chi tiết kỹ thuật & video">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
             </button>
           </div>
@@ -2235,14 +2546,14 @@ function renderTodayTab() {
         <div class="af-metrics-2x2">
           <div>
             <div class="af-m-label">Calo buổi tập</div>
-            <div class="af-m-val" style="color:var(--red);">${energy.workoutBurnedKcal} <span class="af-m-sub">/ ${energy.workoutEstKcal}</span></div>
+            <div class="af-m-val" style="color:var(--red);"><span id="liveWorkoutBurnedVal">${energy.workoutBurnedKcal}</span> <span class="af-m-sub">/ ${energy.workoutEstKcal}</span></div>
           </div>
           <div>
             <div class="af-m-label">Calo trong ngày</div>
-            <div class="af-m-val" style="color:var(--orange);">${energy.dailyTotalBurnedTDEE.toLocaleString('vi-VN')} <span class="af-m-sub">/ ${energy.dailyTotalEstTDEE.toLocaleString('vi-VN')}</span></div>
+            <div class="af-m-val" style="color:var(--orange);"><span id="liveDailyBurnedVal">${energy.dailyTotalBurnedTDEE.toLocaleString('vi-VN')}</span> <span class="af-m-sub">/ ${energy.dailyTotalEstTDEE.toLocaleString('vi-VN')}</span></div>
           </div>
           <div>
-            <div class="af-m-label">Hiệp tập · Tải</div>
+            <div id="liveExTimeLabel" class="af-m-label">${energy.totalExTimeLabel ? `Hiệp tập · ${energy.totalExTimeLabel}` : 'Hiệp tập · Tải'}</div>
             <div class="af-m-val" style="color:var(--green);">${doneSets}/${totalSets} <span class="af-m-sub">· ${todayVolume.toLocaleString('vi-VN')}kg</span></div>
           </div>
           <div>
@@ -2393,11 +2704,16 @@ function renderProgressTab() {
   const historyRows = [...state.logs].reverse().slice(0, 18).map(l => {
     const exMatch = EXERCISES.find(e => e.name === l.exercise);
     const wUnit = exMatch?.wUnit || 'kg';
+    const durTag = l.durationSec ? ` · ${formatDurationCompact(l.durationSec)}` : '';
+    const kcalTag = l.kcal ? ` · ${l.kcal} kcal` : '';
+    const noteExtra = (!l.durationSec && String(l.note || '').includes('kcal'))
+      ? ' · ' + String(l.note).split('·').slice(1).map(x => x.trim()).join(' · ')
+      : `${durTag}${kcalTag}`;
     return `
     <div class="ios-row">
       <div style="flex:1;">
         <div style="font-size:14px;font-weight:600;">${l.exercise.split(' - ')[0]}</div>
-        <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;" class="tabular">${l.date} · ${l.workout}</div>
+        <div style="font-size:12px;color:var(--label-secondary);margin-top:2px;" class="tabular">${l.date} · ${l.workout}${noteExtra}</div>
       </div>
       <div style="text-align:right;" class="tabular">
         <div style="font-size:15px;font-weight:600;color:var(--green);">${l.weight} ${wUnit} × ${l.reps}${exMatch?.unit === 'giây' ? 's' : ''}</div>
@@ -2745,10 +3061,10 @@ async function saveWebhookUrl() {
 
 async function copyAppsScriptCode() {
   try {
-    const res = await fetch('./google-apps-script.gs?v=26', { cache: 'no-store' });
+    const res = await fetch('./google-apps-script.gs?v=27', { cache: 'no-store' });
     const code = await res.text();
     await navigator.clipboard.writeText(code);
-    showToast('Đã sao chép mã Google Apps Script v26');
+    showToast('Đã sao chép mã Google Apps Script v27');
   } catch (e) {
     showToast('Mở file google-apps-script.gs để chép mã');
   }
@@ -2841,7 +3157,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=26', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=27', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })

@@ -384,6 +384,47 @@ button:active, .tappable:active, .is-pressed {
   letter-spacing: -0.005em;
 }
 
+.ex-timer-pill {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  color: var(--green);
+  border: 0.5px solid rgba(48, 209, 88, 0.30);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.ex-timer-pill.running {
+  background: rgba(255, 159, 10, 0.16);
+  color: var(--orange);
+  border-color: rgba(255, 159, 10, 0.42);
+}
+
+.ex-timer-pill.done {
+  background: var(--green-dim);
+  color: var(--green);
+  border-color: rgba(48, 209, 88, 0.40);
+}
+
+@keyframes exPulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.38; transform: scale(0.82); }
+}
+
+.ex-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--orange);
+  animation: exPulseDot 1.2s ease-in-out infinite;
+}
+
 /* Direct Weight Manipulation Bar */
 .weight-bar {
   display: flex;
