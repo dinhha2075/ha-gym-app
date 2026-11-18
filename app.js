@@ -2,7 +2,7 @@
 const SHEET_ID = '1pPayEETE_yoW9lzxYy3Qdd2GV5yEqp1uQZq285eK-wQ';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?usp=sharing`;
 const STORAGE_KEY = 'HA_GYM_PRO_STATE_V2';
-const DEFAULT_WEBHOOK_URL = '';
+const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzk8U7ooZTvIBYhs86Lsyl9_zkXN0elsZOpElPOQz9GhO1AfOJ_wMSrD9JiKbhaR6PO/exec';
 
 // ============================================================================
 // 1. APPLE FLUID SPRING ENGINE (Damping Ratio + Response, Velocity-Preserving)
@@ -441,7 +441,27 @@ const INITIAL_LOGS = [
   { date: '22/10/2026', week: 5, workout: 'Workout A', exercise: 'Seated Row Machine - Kéo lưng ngồi máy', weight: 60, reps: 24, volume: 1440, rir: '1 - 2 RIR', nextWeight: 65, note: '' },
   { date: '26/10/2026', week: 6, workout: 'Workout B', exercise: 'Leg Press - Đạp đùi', weight: 160, reps: 8, volume: 1280, rir: '1 - 2 RIR', nextWeight: 165, note: '' },
   { date: '26/10/2026', week: 6, workout: 'Workout A', exercise: 'Seated Machine Chest Press - Ngồi thẳng đẩy ngực máy', weight: 55, reps: 8, volume: 440, rir: '1 - 2 RIR', nextWeight: 60, note: '' },
-  { date: '26/10/2026', week: 6, workout: 'Workout B', exercise: 'Incline Chest Press - Ghế nghiêng đẩy ngực trên máy', weight: 50, reps: 8, volume: 400, rir: '1 - 2 RIR', nextWeight: 55, note: '' }
+  { date: '26/10/2026', week: 6, workout: 'Workout B', exercise: 'Incline Chest Press - Ghế nghiêng đẩy ngực trên máy', weight: 50, reps: 8, volume: 400, rir: '1 - 2 RIR', nextWeight: 55, note: '' },
+  { date: '11/11/2026', week: 6, workout: '7 Bài Chuẩn (18 Hiệp)', exercise: 'Incline Chest Press - Ghế nghiêng đẩy ngực trên máy', weight: 60, reps: 30, volume: 1800, rir: '1–2 RIR', nextWeight: 65, note: 'Hiệp: 10/10/10' },
+  { date: '11/11/2026', week: 6, workout: '7 Bài Chuẩn (18 Hiệp)', exercise: 'Hammer Curl - Cuộn tay trước búa', weight: 15, reps: 24, volume: 360, rir: '0–1 RIR', nextWeight: 15, note: 'Hiệp: 12/12' },
+  { date: '11/11/2026', week: 6, workout: '7 Bài Chuẩn (18 Hiệp)', exercise: 'Ab Crunch Machine - Gập bụng với máy', weight: 40, reps: 24, volume: 960, rir: '1–2 RIR', nextWeight: 40, note: 'Hiệp: 12/12' },
+  { date: '11/11/2026', week: 6, workout: '7 Bài Chuẩn (18 Hiệp)', exercise: 'Leg Press - Đạp đùi', weight: 160, reps: 30, volume: 4800, rir: '1–2 RIR', nextWeight: 165, note: 'Hiệp: 10/10/10' },
+  { date: '11/11/2026', week: 6, workout: '7 Bài Chuẩn (18 Hiệp)', exercise: 'Lat Pulldown - Kéo xô máy', weight: 40, reps: 20, volume: 800, rir: '1–2 RIR', nextWeight: 40, note: 'Hiệp: 10/10' },
+  { date: '11/11/2026', week: 6, workout: '7 Bài Chuẩn (18 Hiệp)', exercise: 'Seated Row Machine - Kéo lưng ngồi máy', weight: 60, reps: 20, volume: 1200, rir: '1–2 RIR', nextWeight: 60, note: 'Hiệp: 10/10' },
+  { date: '11/11/2026', week: 6, workout: '7 Bài Chuẩn (18 Hiệp)', exercise: 'Machine Shoulder Press - Đẩy vai máy', weight: 40, reps: 18, volume: 720, rir: '1–2 RIR', nextWeight: 40, note: 'Hiệp: 10/8' },
+  { date: '11/11/2026', week: 6, workout: '7 Bài Chuẩn (18 Hiệp)', exercise: 'Wrist Curl - Cuộn cổ tay', weight: 35, reps: 20, volume: 700, rir: '0–1 RIR', nextWeight: 35, note: 'Hiệp: 10/10' },
+  { date: '14/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Incline Chest Press - Ghế nghiêng đẩy ngực trên máy', weight: 65, reps: 24, volume: 1560, rir: '1–2 RIR', nextWeight: 65, note: 'Hiệp: 8/8/8' },
+  { date: '14/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Hammer Curl - Cuộn tay trước búa', weight: 15, reps: 30, volume: 450, rir: '0–1 RIR', nextWeight: 20, note: 'Hiệp: 15/15' },
+  { date: '14/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Ab Crunch Machine - Gập bụng với máy', weight: 40, reps: 28, volume: 1120, rir: '1–2 RIR', nextWeight: 40, note: 'Hiệp: 14/14' },
+  { date: '14/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Wrist Curl - Cuộn cổ tay', weight: 35, reps: 24, volume: 840, rir: '0–1 RIR', nextWeight: 35, note: 'Hiệp: 12/12' },
+  { date: '14/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Seated Row Machine - Kéo lưng ngồi máy', weight: 55, reps: 24, volume: 1320, rir: '1–2 RIR', nextWeight: 60, note: 'Hiệp: 12/12' },
+  { date: '14/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Leg Press - Đạp đùi', weight: 170, reps: 24, volume: 4080, rir: '1–2 RIR', nextWeight: 170, note: 'Hiệp: 8/8/8' },
+  { date: '14/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Lat Pulldown - Kéo xô máy', weight: 40, reps: 24, volume: 960, rir: '1–2 RIR', nextWeight: 45, note: 'Hiệp: 12/12' },
+  { date: '17/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Incline Chest Press - Ghế nghiêng đẩy ngực trên máy', weight: 65, reps: 22, volume: 1430, rir: '1–2 RIR', nextWeight: 65, note: 'Hiệp: 10/7/5 · 5p02s · 40 kcal' },
+  { date: '17/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Hammer Curl - Cuộn tay trước búa', weight: 20, reps: 35, volume: 700, rir: '0–1 RIR', nextWeight: 20, note: 'Hiệp: 10/25 · 1p59s · 13 kcal' },
+  { date: '17/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Ab Crunch Machine - Gập bụng với máy', weight: 40, reps: 30, volume: 1200, rir: '1–2 RIR', nextWeight: 45, note: 'Hiệp: 15/15 · 2p54s · 20 kcal' },
+  { date: '17/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Machine Shoulder Press - Đẩy vai máy', weight: 40, reps: 22, volume: 880, rir: '1–2 RIR', nextWeight: 40, note: 'Hiệp: 11/11 · 5p34s · 41 kcal' },
+  { date: '17/11/2026', week: 6, workout: '9 Bài Chuẩn (22 Hiệp)', exercise: 'Lat Pulldown - Kéo xô máy', weight: 45, reps: 8, volume: 360, rir: '1–2 RIR', nextWeight: 45, note: 'Hiệp: 8 · 43p55s · 48 kcal' }
 ];
 
 const INITIAL_BODY = [
@@ -4084,10 +4104,10 @@ async function saveWebhookUrl() {
 
 async function copyAppsScriptCode() {
   try {
-    const res = await fetch('./google-apps-script.gs?v=29', { cache: 'no-store' });
+    const res = await fetch('./google-apps-script.gs?v=30', { cache: 'no-store' });
     const code = await res.text();
     await navigator.clipboard.writeText(code);
-    showToast('Đã sao chép mã Google Apps Script v29');
+    showToast('Đã sao chép mã Google Apps Script v30');
   } catch (e) {
     showToast('Mở file google-apps-script.gs để chép mã');
   }
@@ -4180,7 +4200,7 @@ window.addEventListener('DOMContentLoaded', () => {
       refreshing = true;
       window.location.reload();
     });
-    navigator.serviceWorker.register('./sw.js?v=29', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('./sw.js?v=30', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })
